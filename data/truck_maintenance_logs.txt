@@ -1,0 +1,63 @@
+TRUCK MAINTENANCE LOGS — GREENPULSE FLEET (SYNTHETIC OPERATIONAL DATA)
+Format: [DATE] | [VEHICLE_ID] | [ROUTE] | [FAULT_CODE] | [DESCRIPTION] | [FUEL_IMPACT]
+
+2025-01-03 | TRK-DL-001 | delhi_mumbai    | F-AIR-001 | Air filter blocked; intake restriction 35%. | +18% fuel burn
+2025-01-05 | TRK-DL-002 | delhi_mumbai    | F-INJ-002 | Injector #3 leaking; cylinder misfire.     | +12% fuel burn
+2025-01-07 | TRK-CH-001 | chennai_bangalore | F-TYR-001 | Rear axle tyre pressure 22 PSI (req 38 PSI). | +6% fuel burn
+2025-01-09 | TRK-KL-001 | kolkata_patna    | F-EXH-001 | DPF clogged; regeneration cycle missed.     | +10% fuel burn
+2025-01-11 | TRK-DL-003 | delhi_mumbai    | F-COL-001 | Coolant leak; engine running hot. Idled 4h. | +22% fuel burn
+2025-01-13 | TRK-DL-004 | delhi_mumbai    | F-GBX-001 | Gearbox sync issue; driver over-revving.    | +9% fuel burn
+2025-01-15 | TRK-CH-002 | chennai_bangalore | F-BRK-001 | Brake drag on rear axle; parasitic load.   | +7% fuel burn
+2025-01-17 | TRK-KL-002 | kolkata_patna    | F-ALT-001 | Alternator overcharging; extra electrical load. | +4% fuel burn
+2025-01-19 | TRK-DL-001 | delhi_mumbai    | F-FLT-001 | Fuel filter clogged; flow restriction.     | +16% fuel burn
+2025-01-21 | TRK-CH-003 | chennai_bangalore | F-INJ-003 | Injector #1 worn; reduced atomisation.     | +8% fuel burn
+2025-01-23 | TRK-KL-003 | kolkata_patna    | F-SUS-001 | Worn shock absorbers; excess road vibration. | +3% fuel burn
+2025-01-25 | TRK-DL-002 | delhi_mumbai    | F-ENG-001 | Engine oil overdue; 4,200 km overdue service. | +5% fuel burn
+2025-01-27 | TRK-DL-003 | delhi_mumbai    | F-AIR-002 | Air compressor fault; brake assist degraded. | Safety risk
+2025-01-29 | TRK-CH-001 | chennai_bangalore | F-COL-002 | Radiator fan clutch failure; overheat event. | +14% fuel burn
+2025-01-31 | TRK-KL-001 | kolkata_patna    | F-TRM-001 | Transmission oil contaminated; clutch slip.  | +11% fuel burn
+2025-02-02 | TRK-DL-004 | delhi_mumbai    | F-INJ-004 | EGR valve stuck open; excess fuel injection. | +20% fuel burn
+2025-02-04 | TRK-DL-001 | delhi_mumbai    | F-GBX-002 | Diff oil leak; bearing noise on turns.      | +2% fuel burn
+2025-02-06 | TRK-CH-002 | chennai_bangalore | F-EXH-002 | Exhaust manifold crack; power loss 15%.     | +18% fuel burn
+2025-02-08 | TRK-KL-002 | kolkata_patna    | F-ECU-001 | ECU fault code P0401; EGR flow below threshold. | +8% fuel burn
+2025-02-10 | TRK-DL-002 | delhi_mumbai    | F-TYR-002 | Front tyre blowout (NH48); 6h delay.       | +0% fuel (idle)
+2025-02-12 | TRK-DL-003 | delhi_mumbai    | F-FLT-002 | Crankcase ventilation filter blocked.       | +6% fuel burn
+2025-02-14 | TRK-CH-003 | chennai_bangalore | F-SUS-002 | Leaf spring broken; load imbalance 800 kg.  | +4% fuel burn
+2025-02-16 | TRK-KL-003 | kolkata_patna    | F-ALT-002 | Battery weak; engine cranking extended.     | +1% fuel burn
+2025-02-18 | TRK-DL-004 | delhi_mumbai    | F-BRK-002 | ABS sensor fault rear; ABS inactive.       | Safety risk
+2025-02-20 | TRK-DL-001 | delhi_mumbai    | F-INJ-005 | Injector calibration drift; ±2% timing error. | +5% fuel burn
+2025-02-22 | TRK-CH-001 | chennai_bangalore | F-COL-003 | Thermostat stuck open; warm-up extended.   | +4% fuel burn
+2025-02-24 | TRK-KL-001 | kolkata_patna    | F-ENG-002 | Piston ring wear; blowby detected.          | +7% fuel burn
+2025-02-26 | TRK-DL-002 | delhi_mumbai    | F-AIR-003 | Intercooler fin corrosion; boost pressure low. | +12% fuel burn
+2025-02-28 | TRK-DL-003 | delhi_mumbai    | F-TRM-002 | Clutch plate worn; slipping at high torque. | +9% fuel burn
+2025-03-02 | TRK-CH-002 | chennai_bangalore | F-ECU-002 | Sensor P0105: MAP sensor failure.           | +7% fuel burn
+2025-03-04 | TRK-KL-002 | kolkata_patna    | F-GBX-003 | 4th gear syncro damaged; driver avoiding 4th. | +6% fuel burn
+2025-03-06 | TRK-DL-004 | delhi_mumbai    | F-SUS-003 | Cabin air bag suspension leak; rough ride.  | +3% fuel burn
+2025-03-08 | TRK-CH-003 | chennai_bangalore | F-INJ-006 | Injector #2 carbon build-up; poor spray.   | +10% fuel burn
+2025-03-10 | TRK-KL-003 | kolkata_patna    | F-EXH-003 | SCR catalyst poisoned; NOx spike detected.  | Emission violation
+2025-03-12 | TRK-DL-001 | delhi_mumbai    | F-COL-004 | Coolant hose cracked; minor leak.           | +3% fuel burn
+2025-03-14 | TRK-DL-002 | delhi_mumbai    | F-FLT-003 | DEF (AdBlue) dosing pump fault; SCR offline. | Emission violation
+2025-03-16 | TRK-CH-001 | chennai_bangalore | F-ALT-003 | Wiring harness chafing; intermittent fault.  | +2% fuel burn
+2025-03-18 | TRK-KL-001 | kolkata_patna    | F-BRK-003 | Brake lining worn below 3mm; replacement due. | Safety risk
+2025-03-20 | TRK-DL-003 | delhi_mumbai    | F-ECU-003 | Fault P0087: fuel rail pressure low.        | +15% fuel burn
+2025-03-22 | TRK-DL-004 | delhi_mumbai    | F-TYR-003 | Tyre rotation overdue; uneven wear 40-tonne axle. | +5% fuel burn
+2025-03-24 | TRK-CH-002 | chennai_bangalore | F-ENG-003 | Valve clearance out-of-spec; compression loss. | +8% fuel burn
+2025-03-26 | TRK-KL-002 | kolkata_patna    | F-GBX-004 | Transfer case oil seal leak; risk of seizure. | Mechanical risk
+2025-03-28 | TRK-DL-001 | delhi_mumbai    | F-AIR-004 | Air dryer cartridge saturated; brake fade risk. | Safety risk
+2025-03-30 | TRK-CH-003 | chennai_bangalore | F-INJ-007 | HPCR pump wear; pressure variance ±380 bar. | +13% fuel burn
+2025-04-01 | TRK-KL-003 | kolkata_patna    | F-COL-005 | Radiator stone damage; coolant loss rate 0.4L/hr. | +6% fuel burn
+2025-04-03 | TRK-DL-002 | delhi_mumbai    | F-TRM-003 | AMT actuator delay; gear change lag 2.1s.   | +4% fuel burn
+2025-04-05 | TRK-DL-003 | delhi_mumbai    | F-EXH-004 | DPF ash load 98%; forced regen cycle needed. | +11% fuel burn
+2025-04-07 | TRK-CH-001 | chennai_bangalore | F-SUS-004 | U-bolt loose; diff housing movement.         | Safety risk
+2025-04-09 | TRK-KL-001 | kolkata_patna    | F-ECU-004 | Fault P0471: exhaust pressure sensor fault.  | +9% fuel burn
+2025-04-11 | TRK-DL-004 | delhi_mumbai    | F-BRK-004 | Park brake cable fraying; partial engagement. | Safety risk
+
+FLEET MAINTENANCE SUMMARY STATISTICS (Q1 2025)
+Total maintenance events logged: 50
+Fuel-impacting faults: 42 (84%)
+Safety-critical faults: 8 (16%)
+Average fuel penalty per fault: +8.7%
+Highest-impact fault type: EGR valve issues (avg +18% fuel burn)
+Most fault-prone vehicle: TRK-DL-004 (8 events, primarily emission control failures)
+Most reliable vehicle: TRK-KL-003 (2 events, both minor)
+Estimated excess CO₂ from maintenance faults (Q1 2025): 2,847 kg above baseline
