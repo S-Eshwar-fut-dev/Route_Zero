@@ -1,5 +1,5 @@
 """
-simulate_pipeline.py — Windows-compatible simulation of the Pathway pipeline.
+simulate_pipeline.py - Windows-compatible simulation of the Pathway pipeline.
 
 Writes realistic GPS + fuel telemetry events to fleet_summary.jsonl every 2 seconds
 so the FastAPI server and Next.js dashboard can connect and display live data.
@@ -12,12 +12,9 @@ import os
 import random
 import time
 
-OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "tmp")
-OUTPUT_FILE = os.path.join(OUTPUT_DIR, "fleet_summary.jsonl")
-SPIKE_FILE  = os.path.join(OUTPUT_DIR, "demo_spike.json")
-os.makedirs(OUTPUT_DIR, exist_ok=True)
+from config import TMP_DIR, FLEET_SUMMARY_PATH, DEMO_SPIKE_PATH
 
-# ── Routes (lat/lon corridors) ────────────────────────────────────────────────
+# -- Routes (lat/lon corridors) --
 ROUTES = {
     "delhi_mumbai":    [(28.6, 77.2), (26.5, 74.5), (24.5, 73.0), (22.0, 72.5), (19.0, 72.8)],
     "chennai_bangalore":[(13.08, 80.27), (12.5, 79.5), (12.3, 78.5), (12.97, 77.59)],
@@ -37,17 +34,17 @@ VEHICLES = {
     "TRK-KL-003": "kolkata_patna",
 }
 
-BASELINES = {
-    "delhi_mumbai":     1420.0,
-    "chennai_bangalore": 380.0,
-    "kolkata_patna":     490.0,
+BASELINE_RATES = {  # kg CO2 per km (baseline diesel)
+    "delhi_mumbai":      0.94,
+    "chennai_bangalore": 0.88,
+    "kolkata_patna":     0.91,
 }
 
-EMISSION_FACTOR = 2.68  # kg CO₂ per litre of diesel (IPCC AR6)
+EMISSION_FACTOR = 2.68  # kg CO2 per litre of diesel (IPCC AR6)
 
-# State: progress along route (0.0–1.0)
+# State: progress along route (0.0-1.0)
 vehicle_progress = {v: random.random() for v in VEHICLES}
-cumulative_co2   = {v: 0.0 for v in VEHICLES}
+
 
 def interpolate_route(waypoints, t):
     """Return lat/lon at fraction t along a route."""
@@ -60,10 +57,10 @@ def interpolate_route(waypoints, t):
 
 def check_spike(vehicle_id: str) -> bool:
     """Returns True if demo_spike.json targets this vehicle."""
-    if not os.path.exists(SPIKE_FILE):
+    if not os.path.exists(DEMO_SPIKE_PATH):
         return False
     try:
-        with open(SPIKE_FILE) as f:
+        with open(DEMO_SPIKE_PATH) as f:
             d = json.load(f)
         return d.get("vehicle_id") == vehicle_id
     except Exception:
@@ -78,17 +75,21 @@ def emit_event(vehicle_id: str) -> dict:
     vehicle_progress[vehicle_id] = (vehicle_progress[vehicle_id] + 0.003 + random.uniform(0, 0.002)) % 1.0
     lat, lon = interpolate_route(waypoints, vehicle_progress[vehicle_id])
 
-    # Fuel consumption
+    # Speed
     is_spike = check_spike(vehicle_id)
+    speed = random.uniform(55, 95) if not is_spike else random.uniform(20, 40)
+
+    # Fuel consumption
     base_fuel = random.uniform(2.5, 4.5)
     fuel = base_fuel * (10 if is_spike else 1.0)
 
     co2_kg = round(fuel * EMISSION_FACTOR, 3)
-    cumulative_co2[vehicle_id] += co2_kg
-    baseline = BASELINES[route_id]
-    co2_saved = round(max(0, baseline - cumulative_co2[vehicle_id]), 3)
 
-    speed = random.uniform(55, 95) if not is_spike else random.uniform(20, 40)
+    # Rate-based CO2 savings (matches co2_engine.py formula)
+    rate = BASELINE_RATES.get(route_id, 0.91)
+    dist_km = speed * (2 / 3600)  # distance in 2s
+    expected_co2 = rate * dist_km
+    co2_saved = round(max(0.0, expected_co2 - co2_kg), 4)
 
     if is_spike or co2_kg > 10.5:
         status = "HIGH_EMISSION_ALERT"
@@ -113,10 +114,10 @@ def emit_event(vehicle_id: str) -> dict:
 
 
 def main():
-    print(f"[GreenPulse Simulator] Writing to {OUTPUT_FILE}")
-    print("[GreenPulse Simulator] 10 trucks | 3 routes | 2s interval — Ctrl+C to stop\n")
+    print(f"[GreenPulse Simulator] Writing to {FLEET_SUMMARY_PATH}")
+    print("[GreenPulse Simulator] 10 trucks | 3 routes | 2s interval - Ctrl+C to stop\n")
     tick = 0
-    with open(OUTPUT_FILE, "a") as f:
+    with open(FLEET_SUMMARY_PATH, "a") as f:
         while True:
             for vehicle_id in VEHICLES:
                 event = emit_event(vehicle_id)
@@ -124,10 +125,10 @@ def main():
             f.flush()
             tick += 1
             # Clear spike after 15 seconds (~8 ticks)
-            if tick % 8 == 0 and os.path.exists(SPIKE_FILE):
-                os.remove(SPIKE_FILE)
+            if tick % 8 == 0 and os.path.exists(DEMO_SPIKE_PATH):
+                os.remove(DEMO_SPIKE_PATH)
                 print("[Simulator] Demo spike cleared.")
-            print(f"\r[tick {tick:4d}] {time.strftime('%H:%M:%S')} — 10 events written", end="", flush=True)
+            print(f"\r[tick {tick:4d}] {time.strftime('%H:%M:%S')} - 10 events written", end="", flush=True)
             time.sleep(2)
 
 
