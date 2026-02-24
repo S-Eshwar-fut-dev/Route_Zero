@@ -71,7 +71,7 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <div style={{ display: "grid", gridTemplateColumns: "200px 1fr", gridTemplateRows: "auto", gap: 0 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", gridTemplateRows: "auto", gap: 0 }}>
         {/* Sidebar */}
         <aside style={{ padding: 16, borderRight: "1px solid #30363d", minHeight: "calc(100vh - 53px)" }}>
           <Sidebar

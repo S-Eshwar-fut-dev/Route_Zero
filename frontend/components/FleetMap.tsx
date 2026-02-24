@@ -27,9 +27,9 @@ function makeIcon(color: string, isPulsing: boolean) {
         : "";
     return L.divIcon({
         className: "",
-        html: `<div style="width:16px;height:16px;border-radius:50%;background:${color};border:2px solid #fff;${pulse}"></div>`,
-        iconSize: [16, 16],
-        iconAnchor: [8, 8],
+        html: `<div style="width:20px;height:20px;border-radius:50%;background:${color};border:2px solid #fff;${pulse}"></div>`,
+        iconSize: [20, 20],
+        iconAnchor: [10, 10],
     });
 }
 
@@ -43,7 +43,7 @@ export default function FleetMap({ vehicles }: Props) {
                 attributionControl={false}
             >
                 <TileLayer
-                    url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                    url="https://{s}.basemaps.cartocdn.com/dark_matter_nolabels/{z}/{x}/{y}{r}.png"
                     attribution="&copy; CartoDB"
                 />
                 {vehicles.map((v) => {

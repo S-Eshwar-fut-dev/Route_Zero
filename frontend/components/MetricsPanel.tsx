@@ -12,12 +12,14 @@ function MetricCard({
     unit,
     delta,
     highlight,
+    invertColor,
 }: {
     label: string;
     value: string | number;
     unit?: string;
     delta?: string;
     highlight?: boolean;
+    invertColor?: boolean;
 }) {
     return (
         <div
@@ -49,8 +51,13 @@ function MetricCard({
                 {unit && <span style={{ color: "#8b949e", fontSize: "0.85rem" }}>{unit}</span>}
             </div>
             {delta && (
-                <span style={{ fontSize: "0.75rem", color: delta.startsWith("+") ? "#ff4444" : "#00ff87" }}>
-                    {delta} vs last 5 min
+                <span style={{
+                    fontSize: "0.75rem",
+                    color: invertColor
+                        ? (delta.startsWith("+") ? "#00ff87" : "#ff4444")
+                        : (delta.startsWith("+") ? "#ff4444" : "#00ff87"),
+                }}>
+                    {delta}
                 </span>
             )}
         </div>
@@ -81,7 +88,8 @@ export default function MetricsPanel({ vehicles }: Props) {
                 value={totalSaved.toFixed(1)}
                 unit="kg"
                 highlight
-                delta={`-${(totalSaved * 0.03).toFixed(1)}`}
+                invertColor
+                delta={totalSaved > 0 ? `+${totalSaved.toFixed(1)} saved` : "Accumulating..."}
             />
             <MetricCard
                 label="Active Anomalies"
