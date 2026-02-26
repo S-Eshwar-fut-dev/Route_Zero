@@ -1,106 +1,122 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { postSpike } from "@/lib/api";
+import { useFleet } from "@/lib/FleetContext";
 
-interface Props {
-    onRouteChange: (route: string) => void;
-    onBudgetChange: (budget: number) => void;
-    selectedRoute: string;
-    budget: number;
-}
+const NAV_ITEMS = [
+    { icon: "🌿", label: "Overview", href: "/overview" },
+    { icon: "🚛", label: "Fleet List", href: "/fleet" },
+    { icon: "📊", label: "Analytics", href: "/analytics" },
+    { icon: "🚨", label: "Alert Center", href: "/alerts", badge: true },
+];
 
-const ROUTES = ["All", "delhi_mumbai", "chennai_bangalore", "kolkata_patna"];
-const SPIKE_VEHICLES = ["TRK-DL-001", "TRK-DL-002", "TRK-DL-003", "TRK-DL-004", "TRK-CH-001", "TRK-CH-002", "TRK-CH-003", "TRK-KL-001", "TRK-KL-002", "TRK-KL-003"];
-
-export default function Sidebar({ onRouteChange, onBudgetChange, selectedRoute, budget }: Props) {
-    const [demoActive, setDemoActive] = useState(false);
-    const [toast, setToast] = useState<string | null>(null);
-
-    async function handleDemoToggle() {
-        const next = !demoActive;
-        setDemoActive(next);
-        if (next) {
-            const target = SPIKE_VEHICLES[Math.floor(Math.random() * SPIKE_VEHICLES.length)];
-            await postSpike(target);
-            setToast(`⚠️ Demo spike sent to ${target}`);
-            setTimeout(() => setToast(null), 4000);
-        }
-    }
+export default function Sidebar() {
+    const pathname = usePathname();
+    const { stats, setChatOpen } = useFleet();
+    const [expanded, setExpanded] = useState(false);
+    const w = expanded ? 200 : 64;
 
     return (
-        <div style={{ background: "#161b22", border: "1px solid #30363d", borderRadius: 12, padding: 20, display: "flex", flexDirection: "column", gap: 20, height: "100%" }}>
-            <div>
-                <label style={{ color: "#8b949e", fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 8 }}>
-                    Fleet / Route Filter
-                </label>
-                {ROUTES.map((r) => (
-                    <button
-                        key={r}
-                        onClick={() => onRouteChange(r)}
-                        style={{
-                            display: "block",
-                            width: "100%",
-                            textAlign: "left",
-                            background: selectedRoute === r ? "#00ff8722" : "transparent",
-                            border: `1px solid ${selectedRoute === r ? "#00ff8755" : "#30363d"}`,
-                            color: selectedRoute === r ? "#00ff87" : "#8b949e",
-                            borderRadius: 6,
-                            padding: "6px 12px",
-                            marginBottom: 4,
-                            cursor: "pointer",
-                            fontSize: "0.8rem",
-                        }}
-                    >
-                        {r === "All" ? "🌐 All Routes" : r.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
-                    </button>
-                ))}
+        <nav
+            style={{
+                width: w,
+                minWidth: w,
+                height: "100vh",
+                background: "#0d1421",
+                borderRight: "1px solid #1e293b",
+                display: "flex",
+                flexDirection: "column",
+                transition: "width 0.2s ease",
+                position: "fixed",
+                left: 0,
+                top: 0,
+                zIndex: 100,
+                overflow: "hidden",
+            }}
+        >
+            {/* Toggle */}
+            <button
+                onClick={() => setExpanded(e => !e)}
+                style={{
+                    background: "none", border: "none", cursor: "pointer",
+                    padding: "18px 0", width: "100%",
+                    color: "#8b949e", fontSize: "1.1rem",
+                }}
+                title={expanded ? "Collapse" : "Expand"}
+            >
+                {expanded ? "✕" : "☰"}
+            </button>
+
+            {/* Nav links */}
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2, padding: "0 6px" }}>
+                {NAV_ITEMS.map(item => {
+                    const active = pathname.startsWith(item.href);
+                    return (
+                        <Link
+                            key={item.href}
+                            href={item.href}
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 12,
+                                padding: "10px 12px",
+                                borderRadius: 8,
+                                textDecoration: "none",
+                                color: active ? "#00ff87" : "#8b949e",
+                                background: active ? "#00ff8712" : "transparent",
+                                borderLeft: active ? "3px solid #00ff87" : "3px solid transparent",
+                                fontSize: "0.82rem",
+                                fontWeight: active ? 600 : 400,
+                                transition: "all 0.15s ease",
+                                position: "relative",
+                                whiteSpace: "nowrap",
+                            }}
+                        >
+                            <span style={{ fontSize: "1.1rem", minWidth: 24, textAlign: "center" }}>{item.icon}</span>
+                            {expanded && <span>{item.label}</span>}
+                            {item.badge && stats.alertCount > 0 && (
+                                <span style={{
+                                    position: expanded ? "relative" : "absolute",
+                                    top: expanded ? "auto" : 4,
+                                    right: expanded ? "auto" : 6,
+                                    marginLeft: expanded ? "auto" : 0,
+                                    background: "#ef4444",
+                                    color: "#fff",
+                                    borderRadius: 10,
+                                    padding: "1px 6px",
+                                    fontSize: "0.62rem",
+                                    fontWeight: 700,
+                                    minWidth: 16,
+                                    textAlign: "center",
+                                }}>
+                                    {stats.alertCount}
+                                </span>
+                            )}
+                        </Link>
+                    );
+                })}
             </div>
 
-            <div>
-                <label style={{ color: "#8b949e", fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 8 }}>
-                    Daily CO₂ Budget: <span style={{ color: "#e6edf3" }}>{budget} kg</span>
-                </label>
-                <input
-                    type="range"
-                    min={100}
-                    max={5000}
-                    step={50}
-                    value={budget}
-                    onChange={(e) => onBudgetChange(Number(e.target.value))}
-                    style={{ width: "100%", accentColor: "#00ff87" }}
-                />
-                <div style={{ display: "flex", justifyContent: "space-between", color: "#8b949e", fontSize: "0.68rem", marginTop: 2 }}>
-                    <span>100 kg</span><span>5,000 kg</span>
-                </div>
-            </div>
-
-            <div>
-                <label style={{ color: "#8b949e", fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 8 }}>
-                    🔴 Demo Mode
-                </label>
+            {/* Bottom: GreenAI + Settings */}
+            <div style={{ padding: "0 6px 12px", display: "flex", flexDirection: "column", gap: 2 }}>
                 <button
-                    onClick={handleDemoToggle}
+                    onClick={() => setChatOpen(true)}
                     style={{
-                        width: "100%",
-                        background: demoActive ? "#ff444422" : "#21262d",
-                        border: `1px solid ${demoActive ? "#ff4444" : "#30363d"}`,
-                        color: demoActive ? "#ff4444" : "#8b949e",
-                        borderRadius: 8,
-                        padding: "8px 12px",
-                        cursor: "pointer",
-                        fontSize: "0.8rem",
-                        fontWeight: 600,
+                        display: "flex", alignItems: "center", gap: 12,
+                        padding: "10px 12px", borderRadius: 8,
+                        background: "none", border: "none",
+                        color: "#8b949e", fontSize: "0.82rem",
+                        cursor: "pointer", textAlign: "left",
+                        whiteSpace: "nowrap",
+                        transition: "all 0.15s ease",
                     }}
                 >
-                    {demoActive ? "🔴 Spike Active" : "Trigger Spike Alert"}
+                    <span style={{ fontSize: "1.1rem", minWidth: 24, textAlign: "center" }}>💬</span>
+                    {expanded && <span>GreenAI</span>}
                 </button>
-                {toast && (
-                    <div style={{ marginTop: 8, background: "#ff444422", border: "1px solid #ff4444", borderRadius: 6, padding: "6px 10px", color: "#ff4444", fontSize: "0.72rem" }}>
-                        {toast}
-                    </div>
-                )}
             </div>
-        </div>
+        </nav>
     );
 }

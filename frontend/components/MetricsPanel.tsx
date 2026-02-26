@@ -1,6 +1,6 @@
 "use client";
 
-import type { VehicleEvent, FleetSummary } from "@/lib/types";
+import type { VehicleEvent } from "@/lib/types";
 
 interface Props {
     vehicles: VehicleEvent[];
@@ -13,6 +13,7 @@ function MetricCard({
     delta,
     highlight,
     invertColor,
+    loading,
 }: {
     label: string;
     value: string | number;
@@ -20,6 +21,7 @@ function MetricCard({
     delta?: string;
     highlight?: boolean;
     invertColor?: boolean;
+    loading?: boolean;
 }) {
     return (
         <div
@@ -37,20 +39,33 @@ function MetricCard({
                 {label}
             </span>
             <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-                <span
-                    className="metric-value"
-                    style={{
-                        fontSize: highlight ? "2.5rem" : "1.75rem",
-                        fontWeight: 700,
-                        color: highlight ? "#00ff87" : "#e6edf3",
-                        lineHeight: 1,
-                    }}
-                >
-                    {value}
-                </span>
-                {unit && <span style={{ color: "#8b949e", fontSize: "0.85rem" }}>{unit}</span>}
+                {loading ? (
+                    <div style={{
+                        height: 42,
+                        width: 80,
+                        borderRadius: 6,
+                        background: "linear-gradient(90deg, #21262d 25%, #30363d 50%, #21262d 75%)",
+                        backgroundSize: "200% 100%",
+                        animation: "shimmer 1.5s infinite",
+                    }} />
+                ) : (
+                    <>
+                        <span
+                            className="metric-value"
+                            style={{
+                                fontSize: highlight ? "2.5rem" : "1.75rem",
+                                fontWeight: 700,
+                                color: highlight ? "#00ff87" : "#e6edf3",
+                                lineHeight: 1,
+                            }}
+                        >
+                            {value}
+                        </span>
+                        {unit && <span style={{ color: "#8b949e", fontSize: "0.85rem" }}>{unit}</span>}
+                    </>
+                )}
             </div>
-            {delta && (
+            {!loading && delta && (
                 <span style={{
                     fontSize: "0.75rem",
                     color: invertColor
@@ -65,6 +80,7 @@ function MetricCard({
 }
 
 export default function MetricsPanel({ vehicles }: Props) {
+    const isLoading = vehicles.length === 0;
     const totalCo2 = vehicles.reduce((s, v) => s + (v.co2_kg ?? 0), 0);
     const totalSaved = vehicles.reduce((s, v) => s + (v.co2_saved_kg ?? 0), 0);
     const alerts = vehicles.filter((v) => v.status === "HIGH_EMISSION_ALERT").length;
@@ -82,6 +98,7 @@ export default function MetricsPanel({ vehicles }: Props) {
                 value={totalCo2.toFixed(1)}
                 unit="kg"
                 delta={`+${(totalCo2 * 0.05).toFixed(1)} kg`}
+                loading={isLoading}
             />
             <MetricCard
                 label="CO₂ Saved vs Baseline"
@@ -90,17 +107,20 @@ export default function MetricsPanel({ vehicles }: Props) {
                 highlight
                 invertColor
                 delta={totalSaved > 0 ? `+${totalSaved.toFixed(1)} saved` : "Accumulating..."}
+                loading={isLoading}
             />
             <MetricCard
                 label="Active Anomalies"
                 value={alerts + deviations}
                 unit={alerts + deviations === 1 ? "alert" : "alerts"}
+                loading={isLoading}
             />
             <MetricCard
                 label="Fleet Avg Efficiency"
                 value={avgEff.toFixed(2)}
                 unit="km/L"
                 delta={avgEff > 3.5 ? "+0.12" : "-0.08"}
+                loading={isLoading}
             />
         </div>
     );

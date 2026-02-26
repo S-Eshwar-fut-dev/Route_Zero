@@ -24,7 +24,7 @@ ROUTE_CORRIDORS: dict[str, list[tuple[float, float]]] = {
     ],
 }
 
-DEVIATION_THRESHOLD_KM = 2.0
+DEVIATION_THRESHOLD_KM = 50.0
 
 
 def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
@@ -41,19 +41,42 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
 
+def _point_to_segment_km(
+    px: float, py: float,
+    ax: float, ay: float,
+    bx: float, by: float,
+) -> float:
+    """Shortest distance from point P to segment A->B in km."""
+    dx, dy = bx - ax, by - ay
+    if dx == 0 and dy == 0:
+        return haversine_km(px, py, ax, ay)
+    t = max(0.0, min(1.0, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy)))
+    cx, cy = ax + t * dx, ay + t * dy
+    return haversine_km(px, py, cx, cy)
+
+
 def _min_distance_to_corridor(lat: float, lon: float, route_id: str) -> float:
-    """Return the minimum Haversine distance (km) from a GPS point to any corridor segment."""
+    """Return the minimum distance (km) from a GPS point to any corridor line segment."""
     waypoints = ROUTE_CORRIDORS.get(route_id, [])
-    if not waypoints:
+    if len(waypoints) < 2:
         return 0.0
-    return min(haversine_km(lat, lon, wp_lat, wp_lon) for wp_lat, wp_lon in waypoints)
+    min_dist = float("inf")
+    for i in range(len(waypoints) - 1):
+        d = _point_to_segment_km(
+            lat, lon,
+            waypoints[i][0], waypoints[i][1],
+            waypoints[i + 1][0], waypoints[i + 1][1],
+        )
+        min_dist = min(min_dist, d)
+    return min_dist
 
 
 @pw.udf
 def check_deviation(lat: float, lon: float, route_id: str) -> str:
-    """Return ROUTE_DEVIATION_ALERT if the vehicle is >2 km off its expected corridor.
+    """Return ROUTE_DEVIATION_ALERT if the vehicle is >50 km off its corridor line segment.
 
-    Extra CO₂ from deviation is estimated at 0.4 kg per km of detour.
+    Measured as perpendicular distance to the nearest route segment, not to isolated waypoints.
+    Extra CO2 from deviation is estimated at 0.4 kg per km of detour.
     """
     dist_km = _min_distance_to_corridor(lat, lon, route_id)
     if dist_km > DEVIATION_THRESHOLD_KM:

@@ -10,6 +10,34 @@ export interface VehicleEvent {
     status: "NORMAL" | "WARNING" | "HIGH_EMISSION_ALERT";
     deviation_status: string;
     co2_saved_kg: number;
+    // v2.0 — new telemetry fields
+    load_status?: string;
+    engine_temp_c?: number;
+    tyre_pressure_psi?: number;
+    cargo_type?: string;
+    weather?: string;
+    // v2.0 — ETA fields (from /fleet-intel merge)
+    eta_hours?: number;
+    eta_status?: "ON_TIME" | "AT_RISK" | "DELAYED" | "UNKNOWN";
+    remaining_km?: number;
+    order_id?: string;
+    customer?: string;
+    destination?: string;
+}
+
+export interface ETAEntry {
+    vehicle_id: string;
+    eta_hours: number;
+    eta_status: "ON_TIME" | "AT_RISK" | "DELAYED" | "UNKNOWN";
+    remaining_km: number;
+    order_id: string;
+    customer: string;
+    destination: string;
+    avg_speed_kmph: number;
+    cargo_type: string;
+    route_id: string;
+    progress: number;
+    promised_eta: string;
 }
 
 export interface FleetSummary {
@@ -37,3 +65,4 @@ export interface ChartDataPoint {
     time: string;
     [vehicle_id: string]: number | string;
 }
+

@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  pathway:
+    build:
+      context: .
+      dockerfile: Dockerfile.pathway
+    volumes:
+      - ./tmp:/app/tmp        # Shared volume — Windows reads, Pathway writes
+      - ./data:/app/data      # Policy documents for RAG
+    env_file:
+      - .env
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - DEMO_MODE=${DEMO_MODE:-0}
+      - TMP_DIR=/app/tmp
+    restart: unless-stopped
+    command: python main_pipeline.py

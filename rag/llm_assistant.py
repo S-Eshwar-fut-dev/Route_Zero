@@ -8,21 +8,22 @@ load_dotenv()
 
 import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from config import FLEET_SUMMARY_PATH
+from config import FLEET_SUMMARY_PATH, TMP_DIR
 
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY", ""))
 
 SYSTEM_PROMPT = """You are GreenAI, the carbon intelligence assistant for GreenPulse - India's
 real-time logistics carbon tracking platform. You have access to:
 1. Live fleet telemetry data (updated every 2 seconds).
-2. Policy documents: India NLP 2022, IPCC emission factors, carbon budget guidelines,
+2. ETA predictions and delivery status for all 10 vehicles.
+3. Policy documents: India NLP 2022, IPCC emission factors, carbon budget guidelines,
    truck maintenance logs, and vehicle technical manuals.
 
 For every question, respond in this exact structured format:
 **Answer:** [One direct sentence answering the question.]
 **Evidence:** [Supporting data from live fleet metrics or retrieved documents. Include numbers.]
 **Action:** [One concrete recommended action for the fleet operator.]
-**Sources:** [List the document or data source used: e.g., "Live Fleet Data", "India NLP 2022", "IPCC AR6"]
+**Sources:** [List the document or data source used: e.g., "Live Fleet Data", "ETA Engine", "India NLP 2022", "IPCC AR6"]
 
 Keep answers factual, grounded, and concise. Never speculate beyond available data."""
 
@@ -62,57 +63,101 @@ DEMO_FALLBACKS = {
         "sources": ["India NLP 2022", "Carbon Budget Guidelines", "IPCC AR6 Emission Factors"],
         "live_data_used": False,
     },
+    "eta_risk": {
+        "answer": "2 vehicles are at risk of delayed delivery: TRK-DL-002 (1.8h behind schedule to Pune Chakan) and TRK-CH-002 (route deviation added 47 min).",
+        "evidence": "TRK-DL-002 rolling average speed: 42 kmph (vs required 68 kmph). TRK-CH-002: unauthorized detour near Krishnagiri adds ~38 km.",
+        "action": "Contact TRK-DL-002 driver for speed increase. Reroute TRK-CH-002 back to NH44.",
+        "sources": ["Live Fleet Data", "ETA Engine"],
+        "live_data_used": False,
+    },
+    "eta_vehicle": {
+        "answer": "TRK-DL-001 is currently estimated to arrive at Mumbai JNPT in approximately 4.2 hours, which is ON_TIME for its delivery to Reliance Retail.",
+        "evidence": "TRK-DL-001: rolling avg speed 72 kmph, 55% route complete, 642 km remaining on NH48 Delhi-Mumbai corridor. Promised ETA: 06:00 IST.",
+        "action": "No action needed. Monitor speed on Vadodara bypass section (known congestion point).",
+        "sources": ["Live Fleet Data", "ETA Engine"],
+        "live_data_used": False,
+    },
+    "eta_route": {
+        "answer": "Chennai-Bangalore corridor has the best on-time delivery record today — all 3 vehicles (TRK-CH-001, TRK-CH-002, TRK-CH-003) are within promised delivery windows.",
+        "evidence": "Chennai-Bangalore avg ETA buffer: +2.4 hours. Delhi-Mumbai avg ETA buffer: +0.8 hours. Kolkata-Patna avg ETA buffer: +1.2 hours.",
+        "action": "Consider Chennai-Bangalore as the priority corridor for time-sensitive shipments. Current efficiency leader.",
+        "sources": ["Live Fleet Data", "ETA Engine"],
+        "live_data_used": False,
+    },
 }
 
 
-def get_live_context() -> dict:
-    """Read the latest snapshot from fleet_summary.jsonl, aggregated per vehicle."""
-    if not os.path.exists(FLEET_SUMMARY_PATH):
+def _read_jsonl_latest(filepath: str) -> dict:
+    """Read a JSONL file and return latest record per vehicle_id."""
+    if not os.path.exists(filepath):
         return {}
     try:
-        with open(FLEET_SUMMARY_PATH, "r") as f:
-            lines = f.readlines()
-        if not lines:
-            return {}
-        # Parse all lines, keep latest per vehicle_id
         by_vehicle = {}
-        for line in lines:
-            try:
-                rec = json.loads(line.strip())
-                vid = rec.get("vehicle_id")
-                if vid:
-                    by_vehicle[vid] = rec
-            except Exception:
-                continue
-        if not by_vehicle:
-            return {}
-        # Build fleet summary
-        vehicles = list(by_vehicle.values())
-        total_co2 = sum(v.get("co2_kg", 0) for v in vehicles)
-        total_saved = sum(v.get("co2_saved_kg", 0) for v in vehicles)
-        alerts = [v["vehicle_id"] for v in vehicles
-                  if v.get("status") == "HIGH_EMISSION_ALERT"]
-        deviations = [v["vehicle_id"] for v in vehicles
-                      if str(v.get("deviation_status", "")).startswith("ROUTE_DEVIATION")]
-        best_route = max(
-            set(v["route_id"] for v in vehicles),
-            key=lambda r: sum(
-                v.get("speed_kmph", 0) / max(v.get("fuel_consumed_liters", 1), 0.1)
-                for v in vehicles if v["route_id"] == r
-            )
-        )
-        return {
-            "timestamp": vehicles[-1].get("timestamp", time.time()),
-            "vehicle_count": len(vehicles),
-            "total_co2_kg": round(total_co2, 2),
-            "total_co2_saved_kg": round(total_saved, 2),
-            "active_alerts": alerts,
-            "active_deviations": deviations,
-            "most_efficient_route": best_route,
-            "vehicles": vehicles,
-        }
+        with open(filepath, "r", encoding="utf-8") as f:
+            for line in f:
+                try:
+                    rec = json.loads(line.strip())
+                    vid = rec.get("vehicle_id")
+                    if vid:
+                        by_vehicle[vid] = rec
+                except Exception:
+                    continue
+        return by_vehicle
     except Exception:
         return {}
+
+
+def get_live_context() -> dict:
+    """Read the latest snapshot from fleet_summary.jsonl + eta_summary.jsonl."""
+    # Fleet data
+    by_vehicle = _read_jsonl_latest(FLEET_SUMMARY_PATH)
+    if not by_vehicle:
+        return {}
+
+    # ETA data
+    eta_path = os.path.join(TMP_DIR, "eta_summary.jsonl")
+    eta_by_vehicle = _read_jsonl_latest(eta_path)
+
+    # Merge ETA into fleet records
+    for vid, eta in eta_by_vehicle.items():
+        if vid in by_vehicle:
+            by_vehicle[vid]["eta_hours"] = eta.get("eta_hours", 0)
+            by_vehicle[vid]["eta_status"] = eta.get("eta_status", "UNKNOWN")
+            by_vehicle[vid]["remaining_km"] = eta.get("remaining_km", 0)
+            by_vehicle[vid]["order_id"] = eta.get("order_id", "")
+            by_vehicle[vid]["customer"] = eta.get("customer", "")
+            by_vehicle[vid]["destination"] = eta.get("destination", "")
+
+    vehicles = list(by_vehicle.values())
+    total_co2 = sum(v.get("co2_kg", 0) for v in vehicles)
+    total_saved = sum(v.get("co2_saved_kg", 0) for v in vehicles)
+    alerts = [v["vehicle_id"] for v in vehicles
+              if v.get("status") == "HIGH_EMISSION_ALERT"]
+    deviations = [v["vehicle_id"] for v in vehicles
+                  if str(v.get("deviation_status", "")).startswith("ROUTE_DEVIATION")]
+    delayed = [v["vehicle_id"] for v in vehicles
+               if v.get("eta_status") == "DELAYED"]
+    at_risk = [v["vehicle_id"] for v in vehicles
+               if v.get("eta_status") == "AT_RISK"]
+    best_route = max(
+        set(v["route_id"] for v in vehicles),
+        key=lambda r: sum(
+            v.get("speed_kmph", 0) / max(v.get("fuel_consumed_liters", 1), 0.1)
+            for v in vehicles if v["route_id"] == r
+        )
+    )
+    return {
+        "timestamp": vehicles[-1].get("timestamp", time.time()),
+        "vehicle_count": len(vehicles),
+        "total_co2_kg": round(total_co2, 2),
+        "total_co2_saved_kg": round(total_saved, 2),
+        "active_alerts": alerts,
+        "active_deviations": deviations,
+        "delayed_vehicles": delayed,
+        "at_risk_vehicles": at_risk,
+        "most_efficient_route": best_route,
+        "vehicles": vehicles,
+    }
 
 
 def _match_fallback(question: str) -> dict | None:
@@ -127,6 +172,12 @@ def _match_fallback(question: str) -> dict | None:
         return DEMO_FALLBACKS["fuel efficient"]
     if any(k in q_lower for k in ["comply", "compliance", "policy", "nlp", "target"]):
         return DEMO_FALLBACKS["comply"]
+    if any(k in q_lower for k in ["late", "delay", "risk", "behind", "at risk"]):
+        return DEMO_FALLBACKS["eta_risk"]
+    if any(k in q_lower for k in ["eta", "arrival", "arrive", "estimated time", "when will"]):
+        return DEMO_FALLBACKS["eta_vehicle"]
+    if any(k in q_lower for k in ["on-time", "on time", "delivery record", "punctual"]):
+        return DEMO_FALLBACKS["eta_route"]
     return None
 
 

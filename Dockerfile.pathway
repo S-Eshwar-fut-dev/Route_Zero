@@ -1,0 +1,24 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# System deps for Pathway native compilation
+RUN apt-get update && apt-get install -y \
+    gcc g++ make \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY config.py .
+COPY main_pipeline.py .
+COPY connectors/ connectors/
+COPY transforms/ transforms/
+COPY rag/ rag/
+COPY data/ data/
+COPY .env* ./
+
+# Create tmp dir inside container (mapped to host ./tmp via volume)
+RUN mkdir -p /app/tmp
+
+CMD ["python", "main_pipeline.py"]

@@ -44,8 +44,17 @@ export default function AnomalyLog({ anomalies }: Props) {
 
     return (
         <div style={{ background: "#161b22", border: "1px solid #30363d", borderRadius: 12, padding: 16, height: "100%", display: "flex", flexDirection: "column" }}>
-            <h3 style={{ color: "#e6edf3", margin: "0 0 12px", fontSize: "0.8rem", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            <h3 style={{ color: "#e6edf3", margin: "0 0 12px", fontSize: "0.8rem", textTransform: "uppercase", letterSpacing: "0.08em", display: "flex", alignItems: "center" }}>
                 🚨 Anomaly Log
+                {anomalies.length > 0 && (
+                    <span style={{
+                        marginLeft: 8, background: "#ff4444",
+                        color: "#fff", borderRadius: 20,
+                        padding: "1px 7px", fontSize: "0.68rem", fontWeight: 700,
+                    }}>
+                        {anomalies.length}
+                    </span>
+                )}
             </h3>
             <div ref={scrollRef} style={{ flex: 1, overflowY: "auto" }}>
                 {anomalies.length === 0 ? (
