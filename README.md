@@ -53,13 +53,14 @@ We transform raw, unorganized IoT data points from fleets into **Actionable Envi
 Green Pulse is designed as a high-performance, edge-ready Next.js application, utilizing a robust functional React architecture optimized for real-time data flow.
 
 ### System Pathway (Data Flow)
-1. **Telemetry Simulation Layer:** The `lib/data.ts` and `lib/FleetContext` act as the mock hardware IoT ingestion layer. They broadcast a steady stream of `VehicleEvent` interfaces containing GPS coordinates, speed, routing IDs, capacity, and environmental factors.
-2. **Anomaly Extraction Engine:** The core mathematical engine intercepts the data stream. It scans for SLA (Service Level Agreement) violations. For example, if `telemetry.temperature_c > -16`, it generates a `CRITICAL: TEMPERATURE_BREACH` object.
-3. **State Distribution:** The React standard Context API (`useFleet`) pushes these enriched payload objects (Vehicle List + Active Anomalies + Historical Stats) to the frontend component tree.
-4. **Render Layer:** The Enterprise Top Navbar, IndiaMap (Leaflet), Analytics Dashboard, and Alert Center consume the state. State changes immediately trigger CSS animations (e.g., turning a marker red, animating the dashboard).
-5. **AI Evaluation Layer (GreenAI):** The unified state blob is serialized and injected into the Next.js API Route `/api/query/route.ts` as a hidden `system_prompt`. This gives the Gemini LLM perfect, up-to-the-second knowledge of the entire supply chain without requiring a heavy vector database.
+1. **Real-Time IoT Ingestion (Pathway):** The backend Python data engine uses the **Pathway** (`pw`) streaming framework to ingest high-frequency synthetic OBD-II and GPS telemetry from fleets. Pathway's `ConnectorSubject` streams data point events seamlessly into memory.
+2. **Streaming Anomaly Detection (Pathway UDFs):** Utilizing Pathway's unified engine, User-Defined Functions (like the Haversine route deviation checker) calculate real-time drift, overloaded cargo anomalies, and localized CO₂ footprints on the fly, instantly transforming raw coordinates into alerts like `ROUTE_DEVIATION_ALERT`. *(Note: Due to Vercel's 500MB serverless limit, the live Pathway Python backend is temporarily abstracted into mocked frontend contexts for this specific web deployment, but the core architecture is designed around Pathway).*
+3. **State Distribution:** The Next.js standard Context API (`useFleet`) picks up the enriched payload objects (Vehicle List + Active Anomalies) to sync the frontend component tree.
+4. **Render Layer:** The Enterprise Top Navbar, IndiaMap (Leaflet), Analytics Dashboard, and Alert Center consume the state. State changes immediately trigger CSS animations.
+5. **AI Evaluation Layer (GreenAI):** The unified state blob is serialized and injected into the Next.js API Route `/api/query/route.ts` as a hidden `system_prompt`. This gives the Gemini LLM perfect, up-to-the-second knowledge of the entire supply chain.
 
 ### Tech Stack
+* **Data Streaming Engine:** Pathway (Python real-time anomaly detection)
 * **Framework:** Next.js 14 (App Router)
 * **Language:** TypeScript
 * **UI/UX:** Vanilla CSS Modules, CSS Variables (Deep Blue `#0F172A`, Muted Cards `#1A2332`, Emerald Precision `#10B981`)
