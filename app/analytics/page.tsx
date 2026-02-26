@@ -8,7 +8,7 @@ import {
     XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ZAxis
 } from "recharts";
 
-const GREEN = ["#00ff87", "#00cc6a", "#009950"];
+const GREEN = ["#10B981", "#00cc6a", "#009950"];
 
 export default function AnalyticsPage() {
     const { vehicles, stats, anomalies } = useFleet();
@@ -76,7 +76,7 @@ export default function AnalyticsPage() {
         <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 20 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <h1 style={{ color: "#f0f6fc", fontSize: "1.25rem", fontWeight: 700, margin: 0 }}>Fleet Analytics</h1>
-                <span style={{ background: "#111827", color: "#8b949e", padding: "4px 12px", borderRadius: 8, fontSize: "0.72rem" }}>
+                <span style={{ background: "#0F172A", color: "#8b949e", padding: "4px 12px", borderRadius: 8, fontSize: "0.72rem" }}>
                     Last {range}
                 </span>
             </div>
@@ -92,7 +92,7 @@ export default function AnalyticsPage() {
             {/* Charts Row 1 */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 {/* Anomaly Distribution Pie */}
-                <div style={{ background: "#0d1421", border: "1px solid #1e293b", borderRadius: 14, padding: "20px 24px" }}>
+                <div style={{ background: "#1a2332", border: "1px solid #1e293b", borderRadius: 14, padding: "20px 24px" }}>
                     <h3 style={{ color: "#f0f6fc", margin: "0 0 16px", fontSize: "0.82rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>
                         Anomaly Distribution
                     </h3>
@@ -102,7 +102,7 @@ export default function AnalyticsPage() {
                                 <Pie data={anomalyPie} cx="50%" cy="50%" outerRadius={80} innerRadius={45} dataKey="value" paddingAngle={4} minAngle={5}>
                                     {anomalyPie.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
                                 </Pie>
-                                <Tooltip contentStyle={{ background: "#0d1421", border: "1px solid #1e293b", borderRadius: 8, fontSize: "0.78rem" }} />
+                                <Tooltip contentStyle={{ background: "#1a2332", border: "1px solid #1e293b", borderRadius: 8, fontSize: "0.78rem" }} />
                                 <Legend wrapperStyle={{ fontSize: "0.72rem", color: "#8b949e", textTransform: "capitalize" }} />
                             </PieChart>
                         ) : (
@@ -112,7 +112,7 @@ export default function AnalyticsPage() {
                 </div>
 
                 {/* Route Health Score */}
-                <div style={{ background: "#0d1421", border: "1px solid #1e293b", borderRadius: 14, padding: "20px 24px" }}>
+                <div style={{ background: "#1a2332", border: "1px solid #1e293b", borderRadius: 14, padding: "20px 24px" }}>
                     <h3 style={{ color: "#f0f6fc", margin: "0 0 16px", fontSize: "0.82rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>
                         Shipment Health Score by Route
                     </h3>
@@ -121,10 +121,10 @@ export default function AnalyticsPage() {
                             <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" horizontal={true} vertical={false} />
                             <XAxis type="number" domain={[0, 100]} tick={{ fill: "#4b5563", fontSize: 10 }} />
                             <YAxis dataKey="route" type="category" tick={{ fill: "#8b949e", fontSize: 9 }} width={100} />
-                            <Tooltip contentStyle={{ background: "#0d1421", border: "1px solid #1e293b", borderRadius: 8, fontSize: "0.78rem" }} cursor={{ fill: '#1e293b' }} />
+                            <Tooltip contentStyle={{ background: "#1a2332", border: "1px solid #1e293b", borderRadius: 8, fontSize: "0.78rem" }} cursor={{ fill: '#1e293b' }} />
                             <Bar dataKey="score" radius={[0, 6, 6, 0]}>
                                 {routeHealth.map((entry, i) => (
-                                    <Cell key={i} fill={entry.score > 80 ? "#00ff87" : entry.score > 50 ? "#f59e0b" : "#ef4444"} />
+                                    <Cell key={i} fill={entry.score > 80 ? "#10B981" : entry.score > 50 ? "#f59e0b" : "#ef4444"} />
                                 ))}
                             </Bar>
                         </BarChart>
@@ -135,7 +135,7 @@ export default function AnalyticsPage() {
             {/* Charts Row 2 */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 {/* Fine Exposure Tracker (Stacked Bar) */}
-                <div style={{ background: "#0d1421", border: "1px solid #1e293b", borderRadius: 14, padding: "20px 24px" }}>
+                <div style={{ background: "#1a2332", border: "1px solid #1e293b", borderRadius: 14, padding: "20px 24px" }}>
                     <h3 style={{ color: "#f0f6fc", margin: "0 0 16px", fontSize: "0.82rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>
                         Financial Risk Exposure (USD)
                     </h3>
@@ -145,19 +145,19 @@ export default function AnalyticsPage() {
                                 <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
                                 <XAxis dataKey="id" tick={{ fill: "#8b949e", fontSize: 9 }} />
                                 <YAxis tick={{ fill: "#4b5563", fontSize: 10 }} unit=" $" width={50} />
-                                <Tooltip contentStyle={{ background: "#0d1421", border: "1px solid #1e293b", borderRadius: 8, fontSize: "0.78rem" }} cursor={{ fill: '#1e293b' }} />
+                                <Tooltip contentStyle={{ background: "#1a2332", border: "1px solid #1e293b", borderRadius: 8, fontSize: "0.78rem" }} cursor={{ fill: '#1e293b' }} />
                                 <Legend wrapperStyle={{ fontSize: "0.72rem", color: "#8b949e" }} />
                                 <Bar dataKey="Overloading" stackId="a" fill="#3b82f6" radius={[0, 0, 0, 0]} />
                                 <Bar dataKey="Delay" stackId="a" fill="#f59e0b" radius={[6, 6, 0, 0]} />
                             </BarChart>
                         ) : (
-                            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%", color: "#00ff87", fontWeight: 600 }}>No current risk exposure</div>
+                            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%", color: "#10B981", fontWeight: 600 }}>No current risk exposure</div>
                         )}
                     </ResponsiveContainer>
                 </div>
 
                 {/* CO2 vs Delay Scatter Plot */}
-                <div style={{ background: "#0d1421", border: "1px solid #1e293b", borderRadius: 14, padding: "20px 24px" }}>
+                <div style={{ background: "#1a2332", border: "1px solid #1e293b", borderRadius: 14, padding: "20px 24px" }}>
                     <h3 style={{ color: "#f0f6fc", margin: "0 0 16px", fontSize: "0.82rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>
                         Efficiency vs Delay Correlation
                     </h3>
@@ -167,10 +167,10 @@ export default function AnalyticsPage() {
                             <XAxis type="number" dataKey="delay" name="Delay" unit=" hrs" tick={{ fill: "#4b5563", fontSize: 10 }} />
                             <YAxis type="number" dataKey="co2" name="CO₂" unit=" kg" tick={{ fill: "#4b5563", fontSize: 10 }} />
                             <ZAxis type="category" dataKey="id" name="Vehicle" />
-                            <Tooltip cursor={{ strokeDasharray: '3 3' }} contentStyle={{ background: "#0d1421", border: "1px solid #1e293b", borderRadius: 8, fontSize: "0.78rem", color: "#f0f6fc" }} />
+                            <Tooltip cursor={{ strokeDasharray: '3 3' }} contentStyle={{ background: "#1a2332", border: "1px solid #1e293b", borderRadius: 8, fontSize: "0.78rem", color: "#f0f6fc" }} />
                             <Scatter name="Shipments" data={scatterData} fill="#00d4ff">
                                 {scatterData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.delay > 0 ? "#ef4444" : "#00ff87"} />
+                                    <Cell key={`cell-${index}`} fill={entry.delay > 0 ? "#ef4444" : "#10B981"} />
                                 ))}
                             </Scatter>
                         </ScatterChart>

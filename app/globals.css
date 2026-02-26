@@ -3,14 +3,14 @@
 @tailwind utilities;
 
 :root {
-  --bg-deep: #0a0f1a;
-  --bg-card: #0d1421;
-  --bg-panel: #111827;
+  --bg-deep: #0F172A;
+  --bg-card: #1a2332;
+  --bg-panel: #0F172A;
   --border: #1e293b;
   --border-accent: #1e3a2f;
-  --green: #00ff87;
-  --green-dim: #00ff8733;
-  --green-glow: 0 0 20px rgba(0, 255, 135, 0.15);
+  --green: #10B981;
+  --green-dim: rgba(16, 185, 129, 0.15);
+  --green-glow: 0 0 20px rgba(16, 185, 129, 0.15);
   --red: #ef4444;
   --yellow: #f59e0b;
   --blue: #3b82f6;
@@ -123,6 +123,20 @@ body {
 .metric-value {
   transition: all 0.3s ease;
   font-variant-numeric: tabular-nums;
+}
+
+.leaflet-tile-pane {
+  filter: sepia(0.3) hue-rotate(110deg) saturate(1.8) brightness(0.65) contrast(1.1);
+}
+
+@keyframes dash-march {
+  to {
+    stroke-dashoffset: -20;
+  }
+}
+
+.animated-route {
+  animation: dash-march 1.5s linear infinite;
 }
 
 /* ── Leaflet dark theme overrides ── */

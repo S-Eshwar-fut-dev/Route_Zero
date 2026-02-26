@@ -66,7 +66,7 @@ export default function FleetPage() {
             {/* Header */}
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <h1 style={{ color: "#f0f6fc", fontSize: "1.25rem", fontWeight: 700, margin: 0 }}>Fleet Management</h1>
-                <span style={{ background: "#00ff8715", color: "#00ff87", padding: "3px 10px", borderRadius: 20, fontSize: "0.7rem", fontWeight: 600 }}>
+                <span style={{ background: "rgba(16, 185, 129, 0.15)", color: "#00ff87", padding: "3px 10px", borderRadius: 20, fontSize: "0.7rem", fontWeight: 600 }}>
                     {stats.vehicleCount} vehicles
                 </span>
                 <span style={{ marginLeft: "auto", color: "#4b5563", fontSize: "0.72rem" }}>
@@ -79,24 +79,24 @@ export default function FleetPage() {
                 <input
                     value={search} onChange={e => setSearch(e.target.value)}
                     placeholder="Search vehicle or shipment ID…"
-                    style={{ background: "#111827", border: "1px solid #1e293b", borderRadius: 8, padding: "6px 14px", color: "#f0f6fc", fontSize: "0.82rem", outline: "none", width: 240 }}
+                    style={{ background: "#0F172A", border: "1px solid #1e293b", borderRadius: 8, padding: "6px 14px", color: "#f0f6fc", fontSize: "0.82rem", outline: "none", width: 240 }}
                 />
                 <select value={routeFilter} onChange={e => setRouteFilter(e.target.value)}
-                    style={{ background: "#111827", border: "1px solid #1e293b", borderRadius: 8, padding: "6px 12px", color: "#f0f6fc", fontSize: "0.82rem", outline: "none" }}>
+                    style={{ background: "#0F172A", border: "1px solid #1e293b", borderRadius: 8, padding: "6px 12px", color: "#f0f6fc", fontSize: "0.82rem", outline: "none" }}>
                     <option value="All">All Routes</option>
                     <option value="delhi_mumbai">Delhi → Mumbai</option>
                     <option value="chennai_bangalore">Chennai → Bangalore</option>
                     <option value="kolkata_patna">Kolkata → Patna</option>
                 </select>
                 <select value={cargoFilter} onChange={e => setCargoFilter(e.target.value)}
-                    style={{ background: "#111827", border: "1px solid #1e293b", borderRadius: 8, padding: "6px 12px", color: "#f0f6fc", fontSize: "0.82rem", outline: "none" }}>
+                    style={{ background: "#0F172A", border: "1px solid #1e293b", borderRadius: 8, padding: "6px 12px", color: "#f0f6fc", fontSize: "0.82rem", outline: "none" }}>
                     <option value="All">All Cargo Types</option>
                     <option value="Cold Chain">Cold Chain</option>
                     <option value="Heavy Freight">Heavy Freight</option>
                     <option value="Hazmat">Hazmat</option>
                 </select>
                 <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-                    style={{ background: "#111827", border: "1px solid #1e293b", borderRadius: 8, padding: "6px 12px", color: "#f0f6fc", fontSize: "0.82rem", outline: "none" }}>
+                    style={{ background: "#0F172A", border: "1px solid #1e293b", borderRadius: 8, padding: "6px 12px", color: "#f0f6fc", fontSize: "0.82rem", outline: "none" }}>
                     <option value="All">All Status</option>
                     <option value="NORMAL">Normal</option>
                     <option value="WARNING">Warning</option>
@@ -105,10 +105,10 @@ export default function FleetPage() {
             </div>
 
             {/* Table */}
-            <div style={{ background: "#0d1421", border: "1px solid #1e293b", borderRadius: 14, overflow: "hidden", overflowX: "auto" }}>
+            <div style={{ background: "#1a2332", border: "1px solid #1e293b", borderRadius: 14, overflow: "hidden", overflowX: "auto" }}>
                 <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 1000 }}>
                     <thead>
-                        <tr style={{ background: "#111827" }}>
+                        <tr style={{ background: "#0F172A" }}>
                             <th style={headerStyle("vehicle_id")} onClick={() => toggleSort("vehicle_id")}>
                                 Shipment {sortKey === "vehicle_id" && (sortAsc ? "↑" : "↓")}
                             </th>
@@ -215,7 +215,7 @@ export default function FleetPage() {
 
             {/* Footer */}
             <div style={{
-                background: "#0d1421", border: "1px solid #1e293b", borderRadius: 10,
+                background: "#1a2332", border: "1px solid #1e293b", borderRadius: 10,
                 padding: "10px 20px", display: "flex", gap: 24,
                 fontSize: "0.75rem", color: "#8b949e",
             }}>

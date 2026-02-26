@@ -28,9 +28,9 @@ const ROUTE_CORRIDORS: Record<string, [number, number][]> = {
 
 /* ── Per-route colors ── */
 const ROUTE_COLORS: Record<string, string> = {
-    delhi_mumbai: "#00ff87",
-    chennai_bangalore: "#00ccff",
-    kolkata_patna: "#fbbf24",
+    delhi_mumbai: "#10B981",
+    chennai_bangalore: "#10B981",
+    kolkata_patna: "#10B981",
 };
 
 const ROUTE_LABELS: Record<string, string> = {
@@ -100,7 +100,7 @@ function etaStatusColor(eta?: string) {
 function makeIcon(color: string, isAlert: boolean, pulseType: string, etaStatus?: string) {
     if (typeof window === "undefined") return undefined;
     const L = require("leaflet");
-    const pulse = isAlert ? `animation: ${pulseType || "pulse-red"} 1.5s ease-out infinite;` : "";
+    const bg = isAlert ? color : "#fff";
 
     const delayBadge = etaStatus === "DELAYED"
         ? `<div style="position:absolute;top:-18px;left:50%;transform:translateX(-50%);
@@ -112,11 +112,11 @@ function makeIcon(color: string, isAlert: boolean, pulseType: string, etaStatus?
         className: "",
         html: `<div style="position:relative;">
             ${delayBadge}
-            <div style="width:16px;height:16px;border-radius:50%;background:${color};
-                border:2px solid rgba(255,255,255,0.6);box-shadow:0 0 8px ${color}44;${pulse}"></div>
+            <div style="width:14px;height:14px;border-radius:50%;background:${bg};
+                box-shadow:0 0 12px ${color};border:2px solid #0F172A"></div>
         </div>`,
-        iconSize: [16, 16],
-        iconAnchor: [8, 8],
+        iconSize: [14, 14],
+        iconAnchor: [7, 7],
     });
 }
 
@@ -174,22 +174,10 @@ export default function IndiaMap({
                     attribution="&copy; CartoDB"
                 />
 
-                {/* Route glow (wider, dimmer) — per-route color */}
+                {/* Animated Dashed Route Line */}
                 {Object.entries(routes).filter(([, pts]) => pts?.length).map(([routeId, pts]) => (
-                    <Polyline key={`glow-${routeId}`} positions={pts}
-                        pathOptions={{ color: ROUTE_COLORS[routeId] ?? "#00ff87", weight: 10, opacity: 0.08 }} />
-                ))}
-
-                {/* Route line (thin, solid) — per-route color */}
-                {Object.entries(routes).filter(([, pts]) => pts?.length).map(([routeId, pts]) => (
-                    <Polyline key={`line-${routeId}`} positions={pts}
-                        pathOptions={{ color: ROUTE_COLORS[routeId] ?? "#00ff87", weight: 2.5, opacity: 0.45 }} />
-                ))}
-
-                {/* Ghost paths: dashed predicted remaining route per vehicle */}
-                {ghostPaths.map(gp => (
-                    <Polyline key={`ghost-${gp.id}`} positions={gp.positions}
-                        pathOptions={{ color: gp.color, weight: 1.5, opacity: 0.35, dashArray: "6, 8" }} />
+                    <Polyline key={`dash-${routeId}`} positions={pts}
+                        pathOptions={{ color: ROUTE_COLORS[routeId], weight: 3, opacity: 0.8, dashArray: "10, 10", className: "animated-route" }} />
                 ))}
 
                 {/* Truck markers */}

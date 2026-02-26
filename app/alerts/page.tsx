@@ -37,7 +37,7 @@ export default function AlertsPage() {
             {toast && (
                 <div className="slide-in" style={{
                     position: "fixed", top: 64, right: 24, zIndex: 2000,
-                    background: "#0d1421", border: "1px solid #1e293b",
+                    background: "#1a2332", border: "1px solid #1e293b",
                     borderRadius: 10, padding: "10px 20px",
                     color: "#f0f6fc", fontSize: "0.82rem",
                     boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
@@ -62,7 +62,7 @@ export default function AlertsPage() {
                     <button key={t} onClick={() => setTab(t)}
                         style={{
                             padding: "6px 16px", borderRadius: 8,
-                            background: tab === t ? "#00ff8715" : "#111827",
+                            background: tab === t ? "rgba(16, 185, 129, 0.15)" : "#0F172A",
                             border: `1px solid ${tab === t ? "#00ff8733" : "#1e293b"}`,
                             color: tab === t ? "#00ff87" : "#8b949e",
                             fontSize: "0.78rem", fontWeight: 600, cursor: "pointer",
@@ -72,7 +72,7 @@ export default function AlertsPage() {
                     </button>
                 ))}
                 <select value={sevFilter} onChange={e => setSevFilter(e.target.value)}
-                    style={{ marginLeft: "auto", background: "#111827", border: "1px solid #1e293b", borderRadius: 8, padding: "6px 12px", color: "#f0f6fc", fontSize: "0.78rem", outline: "none" }}>
+                    style={{ marginLeft: "auto", background: "#0F172A", border: "1px solid #1e293b", borderRadius: 8, padding: "6px 12px", color: "#f0f6fc", fontSize: "0.78rem", outline: "none" }}>
                     <option value="All">All Severities</option>
                     <option value="Critical">Critical Only</option>
                     <option value="Warning">Warning Only</option>
@@ -83,7 +83,7 @@ export default function AlertsPage() {
             {/* Bulk Actions Bar */}
             {selectedAlerts.length > 0 && (
                 <div className="slide-in" style={{
-                    background: "#0d1421", border: "1px solid #3b82f6", borderRadius: 10,
+                    background: "#1a2332", border: "1px solid #3b82f6", borderRadius: 10,
                     padding: "10px 20px", display: "flex", alignItems: "center", gap: 16,
                     position: "sticky", top: 16, zIndex: 100
                 }}>
@@ -106,7 +106,7 @@ export default function AlertsPage() {
             {/* Alert Cards */}
             {filtered.length === 0 ? (
                 <div style={{
-                    background: "#0d1421", border: "1px solid #1e293b", borderRadius: 14,
+                    background: "#1a2332", border: "1px solid #1e293b", borderRadius: 14,
                     padding: 60, display: "flex", flexDirection: "column", alignItems: "center", gap: 12,
                 }}>
                     <span style={{ fontSize: "2.5rem" }}>✅</span>
@@ -125,7 +125,7 @@ export default function AlertsPage() {
 
                         return (
                             <div key={a.id} className="slide-in" style={{
-                                background: "#0d1421",
+                                background: "#1a2332",
                                 border: "1px solid #1e293b",
                                 borderLeft: `4px solid ${borderColor}`,
                                 borderRadius: "0 14px 14px 0",
@@ -151,7 +151,7 @@ export default function AlertsPage() {
                                             {a.type.replace(/_/g, " ")}
                                         </span>
                                         {isResolved && (
-                                            <span style={{ background: "#00ff8715", color: "#00ff87", padding: "2px 8px", borderRadius: 20, fontSize: "0.62rem", fontWeight: 600 }}>
+                                            <span style={{ background: "rgba(16, 185, 129, 0.15)", color: "#00ff87", padding: "2px 8px", borderRadius: 20, fontSize: "0.62rem", fontWeight: 600 }}>
                                                 Resolved
                                             </span>
                                         )}
@@ -166,7 +166,7 @@ export default function AlertsPage() {
                                     </div>
 
                                     {/* Detail */}
-                                    <div style={{ background: "#111827", borderRadius: 8, padding: 12, marginBottom: 12, fontSize: "0.78rem", color: "#8b949e" }}>
+                                    <div style={{ background: "#0F172A", borderRadius: 8, padding: 12, marginBottom: 12, fontSize: "0.78rem", color: "#8b949e" }}>
                                         {a.detail}
                                     </div>
 
@@ -202,11 +202,11 @@ export default function AlertsPage() {
                                                 Contact Driver
                                             </button>
                                             <button onClick={() => { resolveAnomaly(a.id); showToast("✅ Acknowledged"); }}
-                                                style={{ background: "#111827", border: "1px solid #1e293b", color: "#8b949e", borderRadius: 8, padding: "6px 16px", fontSize: "0.72rem", fontWeight: 600, cursor: "pointer" }}>
+                                                style={{ background: "#0F172A", border: "1px solid #1e293b", color: "#8b949e", borderRadius: 8, padding: "6px 16px", fontSize: "0.72rem", fontWeight: 600, cursor: "pointer" }}>
                                                 Mark Resolved
                                             </button>
                                             <Link href={`/fleet/${a.vehicle_id}`}
-                                                style={{ background: "#111827", border: "1px solid #1e293b", color: "#8b949e", borderRadius: 8, padding: "6px 16px", fontSize: "0.72rem", fontWeight: 600, textDecoration: "none" }}>
+                                                style={{ background: "#0F172A", border: "1px solid #1e293b", color: "#8b949e", borderRadius: 8, padding: "6px 16px", fontSize: "0.72rem", fontWeight: 600, textDecoration: "none" }}>
                                                 View Vehicle
                                             </Link>
                                         </div>
