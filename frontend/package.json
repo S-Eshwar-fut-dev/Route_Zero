@@ -2,6 +2,21 @@
   "name": "greenpulse-frontend",
   "version": "1.0.0",
   "private": true,
+  "description": "Green Pulse - Intelligent logistics orchestration platform for reducing Scope 1 and Scope 3 CO2 emissions.",
+  "author": "S-Eshwar-fut-dev",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/S-Eshwar-fut-dev/Green_Pulse.git"
+  },
+  "keywords": [
+    "logistics",
+    "supply-chain",
+    "co2-reduction",
+    "ai",
+    "nextjs",
+    "hackathon"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",

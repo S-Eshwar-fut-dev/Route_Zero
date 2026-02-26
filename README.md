@@ -1,89 +1,128 @@
-<div align="center">
-  <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/leaf.svg" alt="Green Pulse Logo" width="80" height="80">
-  
-  # � Green Pulse Enterprise
-  
-  **Intelligent Logistics Orchestration Platform Optimizing Freight Routing, Cold-Chain Compliance, and Real-Time CO₂ Reduction.**
-  
-  *Built for the [Hackfor Green Earth Hackathon](https://hackforgreenearth.com)*
-</div>
+# 🌿 GreenPulse — Real-Time Carbon Intelligence for India's Logistics
 
-<br />
+[![Python 3.11](https://img.shields.io/badge/Python-3.11-blue?logo=python)](https://python.org)
+[![Next.js 14](https://img.shields.io/badge/Next.js-14-black?logo=next.js)](https://nextjs.org)
+[![Pathway](https://img.shields.io/badge/Streaming-Pathway-green)](https://pathway.com)
+[![Gemini 1.5 Pro](https://img.shields.io/badge/AI-Gemini%201.5%20Pro-orange?logo=google)](https://deepmind.google/gemini)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## � The Issue It Solves (The Problem)
+> **India's first real-time carbon ledger for freight logistics.** GreenPulse streams GPS telemetry from trucks, computes CO₂ in real time using IPCC AR6 emission factors, predicts ETA delays before they happen, and lets fleet operators ask natural-language questions about their fleet's carbon footprint — answered by Gemini 1.5 Pro with citations from India's NLP 2022 policy.
 
-The global logistics and heavy freight industry is responsible for over **8% of global greenhouse gas emissions**. Current supply chain management relies on disjointed, reactive systems that fail to address three major systemic failures:
-
-1. **Reactive Cold-Chain Failures:** Billions of dollars in pharmaceuticals and perishable goods are lost annually due to undetected temperature breaches during transit, resulting in massive waste and unnecessary duplicate production cycles (and thus double the carbon footprint).
-2. **Invisible Inefficiencies:** Standard GPS tracking only shows location. It does not correlate speed, traffic, payload constraints, and routing to calculate real-time fuel burn or predict localized CO₂ emissions.
-3. **Information Silos:** Drivers, dispatchers, and environmental compliance officers operate in separate silos, meaning eco-friendly routing decisions or emergency reroutes are rarely executed fast enough to prevent environmental or financial damage.
-
-## 💡 The Solution (Green Pulse)
-
-**Green Pulse is a proactive logistics command center** that fuses real-time vehicle telemetry, dynamic routing algorithms, and Generative AI into a single "Datadog-style" enterprise dashboard.
-
-We transform raw, unorganized IoT data points from fleets into **Actionable Environmental Intelligence**. By instantly flagging anomalies (e.g., overloading, cold-chain failure, inefficient routing), Green Pulse allows fleet coordinators to act immediately—saving fuel, preserving cargo, and actively reducing the carbon footprint of every shipment.
+**Built for Hack For Green Bharat 2026.**
 
 ---
 
-## ✨ Features & Functionalities
+## 📸 Demo
 
-### 1. Advanced Telemetry & Anomaly Detection Engine
-* **Cold-Chain Monitoring:** Constant analysis of cargo temperature and humidity. Instant critical alerts triggered if conditions breach safe tolerances (-18°C target ±2°C).
-* **Load Compliance:** Real-time correlation of vehicle capacity (`vehicle_capacity_kg`) vs. actual payload (`load_weight_kg`). Flags overloaded vehicles that exponentially increase fuel burn and mechanical wear.
-* **ETA & Delay Cascading:** Algorithms calculate exact ETA changes based on routing anomalies, triggering "Risk" protocols if a delay threatens the viability of the cargo.
+| Fleet Map (Live) | Rolling Emissions Chart | GreenAI Chat |
+|:---:|:---:|:---:|
+| Dark map, 3 corridors, ghost path predictions | 30-min sliding window per route | Gemini answers with NLP 2022 citations |
 
-### 2. Live Enterprise Command Center (60/40 Split)
-* **CartoDB Dark Matter Visualization:** A highly optimized, green-tinted 60% hero map utilizing `React-Leaflet`. Plots active vehicles as live data points traversing dashed, animated route corridors across India.
-* **Live Fleet Tracking & Resolution:** The 40% metrics panel features ultra-dense fleet status tables, on-time delivery progress trackers, and a rapid Resolution Center to instantly acknowledge or escalate active supply chain alerts.
-
-### 3. GreenAI Logistics Co-Pilot
-* **Context-Aware Analytics:** Powered by the Google Gemini AI Model.
-* Fleet operators can ask natural language questions like: *"Which cold-chain shipments are at risk of spoiling on the Delhi-Mumbai corridor?"* or *"Calculate our fine exposure for all overloaded trucks."*
-* GreenAI instantly accesses the live `FleetContext` state and provides natural language summaries, risk assessments, and rerouting suggestions.
-
-### 4. Comprehensive Fleet Analytics
-* **Recharts Dashboard:** Fully integrated data visualization suite tracking the "Fleet Anomaly Rate", "Carbon Emission Trends" (hourly histograms), pie charts of anomaly distributions, and a custom Route Health score evaluating the safety of specific freight corridors.
-* **Shipment Timeline Modals:** Granular tracking steps breaking down Dispatch → Transit → Delivery Expected phases.
+> 🔴 `HIGH_EMISSION_ALERT` fires when a truck's 5-minute CO₂ exceeds 2× its rolling average  
+> 🟡 `DELAYED` ghost paths turn red when ETA confidence drops below threshold  
+> ❄️ Cold-chain breach detection triggers at -18°C SLA violation
 
 ---
 
-## 🏗️ Technical Architecture & Pathway
+## 🏗️ Architecture
 
-Green Pulse is designed as a high-performance, edge-ready Next.js application, utilizing a robust functional React architecture optimized for real-time data flow.
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        DATA SOURCES                             │
+│   GPS Telemetry (5-min tumbling)  +  Order Stream (real-time)   │
+└──────────────────┬──────────────────────────┬───────────────────┘
+                   │                          │
+                   ▼                          ▼
+         ┌─────────────────────────────────────────┐
+         │     Pathway Streaming Engine (Docker)    │
+         │  • Dual-stream JOIN (telemetry + orders) │
+         │  • 5-min tumbling windows (alerts)       │
+         │  • 30-min sliding windows (trends)       │
+         │  • IPCC AR6 CO₂ computation per vehicle  │
+         │  • ETA engine with ghost path projection │
+         └──────────────────┬──────────────────────┘
+                            │ writes to ./tmp/ (shared volume)
+                            ▼
+                 ┌─────────────────────┐
+                 │   FastAPI Backend    │
+                 │  • /api/fleet        │
+                 │  • /api/fleet-intel  │
+                 │  • /api/chat (RAG)   │
+                 └──────────┬──────────┘
+                            │
+                 ┌──────────▼──────────┐
+                 │  Next.js Dashboard   │
+                 │  • Fleet map (Leaflet)│
+                 │  • Metrics panel     │
+                 │  • Rolling chart     │
+                 │  • GreenAI chat UI   │
+                 └─────────────────────┘
+```
 
-### System Pathway (Data Flow)
-1. **Real-Time IoT Ingestion (Pathway):** The backend Python data engine uses the **Pathway** (`pw`) streaming framework to ingest high-frequency synthetic OBD-II and GPS telemetry from fleets. Pathway's `ConnectorSubject` streams data point events seamlessly into memory.
-2. **Streaming Anomaly Detection (Pathway UDFs):** Utilizing Pathway's unified engine, User-Defined Functions (like the Haversine route deviation checker) calculate real-time drift, overloaded cargo anomalies, and localized CO₂ footprints on the fly, instantly transforming raw coordinates into alerts like `ROUTE_DEVIATION_ALERT`. *(Note: Due to Vercel's 500MB serverless limit, the live Pathway Python backend is temporarily abstracted into mocked frontend contexts for this specific web deployment, but the core architecture is designed around Pathway).*
-3. **State Distribution:** The Next.js standard Context API (`useFleet`) picks up the enriched payload objects (Vehicle List + Active Anomalies) to sync the frontend component tree.
-4. **Render Layer:** The Enterprise Top Navbar, IndiaMap (Leaflet), Analytics Dashboard, and Alert Center consume the state. State changes immediately trigger CSS animations.
-5. **AI Evaluation Layer (GreenAI):** The unified state blob is serialized and injected into the Next.js API Route `/api/query/route.ts` as a hidden `system_prompt`. This gives the Gemini LLM perfect, up-to-the-second knowledge of the entire supply chain.
-
-### Tech Stack
-* **Data Streaming Engine:** Pathway (Python real-time anomaly detection)
-* **Framework:** Next.js 14 (App Router)
-* **Language:** TypeScript
-* **UI/UX:** Vanilla CSS Modules, CSS Variables (Deep Blue `#0F172A`, Muted Cards `#1A2332`, Emerald Precision `#10B981`)
-* **Mapping:** `react-leaflet`, `leaflet`, CartoDB Base Maps
-* **Data Visualization:** `recharts`
-* **Logistics AI:** `@google/genai` (Gemini Flash 2.5 API)
-* **Iconography:** `lucide-react`
+**Key architectural decision:** Pathway runs in a Docker container (WSL2 backend), while FastAPI and Next.js run natively on Windows. A shared `./tmp/` volume bridges them — same pattern as the La Poste EU reference implementation.
 
 ---
 
-## 📈 Environmental & Business Impact
+## 🚀 Quick Start
 
-Green Pulse proves that **sustainability** and **profitability** are exactly the same metric in logistics.
+### Prerequisites
 
-* **Lower Emissions:** By catching overloaded trucks early and dynamically re-routing delayed vehicles, fleets drastically cut down on wasted diesel, lowering direct Scope 1 CO₂ emissions.
-* **Zero Spoilage:** 100% visibility on cold-chain metrics prevents the spoilage of food and medicine. Less wasted product means less replacement product needs to be manufactured (cutting Scope 3 emissions).
-* **Enterprise Efficiency:** The automated detection engine removes the need for dispatchers to constantly watch dots on a map, allowing them to focus entirely on exception management.
+- Python 3.11+
+- Node.js 18+
+- Docker Desktop (for Pathway pipeline)
+- Gemini API key ([get one free](https://aistudio.google.com))
 
----
+### 1. Clone & configure
 
-## � Getting Started & Installation
+```bash
+git clone https://github.com/S-Eshwar-fut-dev/greenpulse.git
+cd greenpulse
+cp .env.example .env
+# Edit .env and add your GEMINI_API_KEY
+```
 
-To run the Green Pulse Command Center locally:
+### 2. Start Pathway pipeline (Docker)
+
+```bash
+docker compose -f docker-compose.pathway.yml up --build
+# Pathway begins writing to ./tmp/fleet_summary.jsonl
+```
+
+### 3. Start FastAPI backend
+
+```bash
+python -m venv .venv
+# Windows: .venv\Scripts\activate
+# Linux/Mac: source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn rag.api_server:app --port 8000 --reload
+```
+
+### 4. Start Next.js frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+# Open http://localhost:3000
+```
+
+### ⚡ One-command start (Windows)
+
+```bash
+start.bat
+```
+
+### 🔁 Fallback (no Docker needed)
+
+```bash
+python simulate_pipeline.py
+# Writes identical data to ./tmp/ — full demo works without Docker
+```
+
+## ⚙️ Development Setup & Makefile
+
+To run the Green Pulse Command Center locally under the new containerized architecture:
 
 ### 1. Clone the repository
 ```bash
@@ -91,39 +130,207 @@ git clone https://github.com/S-Eshwar-fut-dev/Green_Pulse.git
 cd Green_Pulse
 ```
 
-### 2. Install Dependencies
+### 2. Install Dependencies (Frontend)
 ```bash
+cd frontend
 npm install
 ```
 
-### 3. Setup Environment Variables
-Create a `.env.local` file in the root directory. You must provide a valid Gemini API key for the GreenAI Assistant to function.
-```env
-# Gemini API Key for the GreenAI Co-Pilot Assistant
-GEMINI_API_KEY=your_gemini_api_key_here
-```
+### 3. Environment Variables Reference
+Create a `.env.local` file in the `frontend` directory. Ensure the following keys are populated:
+* `GEMINI_API_KEY`: Strictly required for the GreenAI Co-Pilot to analyze natural language queries.
+* `PATHWAY_REST_ENDPOINT`: (Optional) Override local Pathway container IP if deploying remotely.
 
 ### 4. Run the Development Server
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser. The live telemetry engine will automatically start broadcasting simulated logistics data upon load.
+Open [http://localhost:3000](http://localhost:3000) with your browser.
+
+## 📁 Project Structure
+
+```
+greenpulse/
+├── 📄 README.md
+├── 📄 requirements.txt
+├── 📄 .env.example
+├── 📄 config.py                    # Path resolution (Docker-aware)
+├── 📄 main_pipeline.py             # Pathway streaming pipeline entry
+├── 📄 simulate_pipeline.py         # Windows-compatible demo fallback
+├── 📄 start.bat                    # Windows one-command launcher
+├── 📄 start.sh                     # Linux/Mac launcher
+├── 📄 docker-compose.pathway.yml   # Pathway Docker container only
+├── 📄 Dockerfile.pathway           # Minimal Pathway image
+│
+├── 📂 connectors/                  # Pathway data sources
+│   ├── telemetry_source.py         # GPS telemetry stream
+│   └── order_source.py             # Order management stream
+│
+├── 📂 transforms/                  # Pathway computation graph
+│   ├── co2_engine.py               # IPCC AR6 emission factor logic
+│   ├── eta_engine.py               # ETA prediction with ghost paths
+│   ├── window_aggregations.py      # 5-min tumbling + 30-min sliding
+│   └── alert_logic.py              # HIGH_EMISSION_ALERT thresholds
+│
+├── 📂 rag/                         # FastAPI + RAG backend
+│   ├── api_server.py               # FastAPI app + all endpoints
+│   ├── retriever.py                # BM25 document retrieval
+│   ├── gemini_client.py            # Gemini 1.5 Pro integration
+│   └── fleet_reader.py             # JSONL fleet state reader
+│
+├── 📂 data/                        # Policy & compliance documents
+│   ├── nlp_2022_summary.txt        # India National Logistics Policy 2022
+│   ├── ipcc_ar6_factors.txt        # IPCC AR6 emission factors
+│   └── bee_icm_guidelines.txt      # BEE India Carbon Market guidelines
+│
+├── 📂 frontend/                    # Next.js 14 dashboard
+│   ├── 📄 package.json
+│   ├── 📄 next.config.js
+│   ├── 📂 app/
+│   │   ├── layout.tsx
+│   │   ├── page.tsx                # Main dashboard
+│   │   └── api/
+│   │       ├── fleet/route.ts      # Fleet data proxy
+│   │       └── chat/route.ts       # GreenAI chat proxy
+│   ├── 📂 components/
+│   │   ├── FleetMap.tsx            # Leaflet map with corridors + ghost paths
+│   │   ├── MetricsPanel.tsx        # CO₂ stats + alert counters
+│   │   ├── RollingChart.tsx        # Recharts rolling emissions chart
+│   │   └── GreenAIChat.tsx         # Gemini chat interface
+│   └── 📂 lib/
+│       └── types.ts                # Shared TypeScript interfaces
+│
+└── 📂 tmp/                         # Runtime data (gitignored)
+    ├── fleet_summary.jsonl         # Written by Pathway / simulate_pipeline.py
+    └── eta_summary.jsonl           # ETA predictions
+```
+
+## ⚡ Key Features
+
+### 🔴 Real-Time Alerts
+- `HIGH_EMISSION_ALERT` fires when a truck's 5-minute CO₂ average exceeds 2× its 30-minute rolling baseline
+- Cold-chain temperature breach detection (SLA: -18°C for frozen cargo)
+- Alert history tracked per vehicle
+
+### 🗺️ Live Fleet Intelligence
+- 3 real freight corridors: **Delhi–Mumbai (NH48)**, **Chennai–Bangalore (NH44)**, **Kolkata–Patna (NH19)**
+- Ghost path predictions: dashed lines show predicted route to destination, turning red when ETA is `DELAYED`
+- Live CO₂ intensity coloring (green → amber → red) per truck marker
+
+### 🤖 GreenAI Co-Pilot
+- Ask: *"Why is truck TRK_003 over-emitting on the Delhi–Mumbai corridor?"*
+- Get: Grounded answer citing NLP 2022 compliance targets + IPCC AR6 factors + live fleet data
+- Powered by Gemini 1.5 Pro with BM25 retrieval from policy documents
+
+### 📊 Compliance Dashboard
+- Per-route NLP 2022 compliance bars (e.g., Delhi–Mumbai: 82%)
+- 30-minute rolling emissions chart per corridor
+- Fleet-wide CO₂ summary with trend indicators
 
 ---
 
-## 🗺️ Project Roadmap (Future Pathway)
+## 🔬 Emission Calculation
 
-While fully functional as a prototype, the roadmap for scaling Green Pulse into a production logistics platform includes:
+GreenPulse uses **IPCC AR6 Working Group III (2022)** emission factors:
 
-1. **Hardware IoT Integration:** Replacing the simulated `FleetContext` with live WebSocket connections to physical OBD-II telematics devices and cellular BLE temperature sensors inside shipping containers.
-2. **Blockchain Compliance:** Writing temperature history logs to an immutable ledger for strict pharmaceutical compliance (FDA/EMA standards) upon delivery.
-3. **Automated Rerouting:** Allowing the Gemini AI agent to actually execute API calls to the driver's native dispatch app, automatically changing their route if a massive delay is detected ahead.
-4. **Scope 3 Carbon Auditing:** Exporting automated PDF reports mapping exact fuel burn and emissions data for corporate sustainability auditing.
+```python
+# Base factor: 0.89 kg CO₂ per km (heavy freight, diesel)
+# Load multiplier: 1.0 (empty) → 1.4 (full load)
+# Speed efficiency: optimal at 60–80 km/h; penalty above 90 km/h
+
+co2_kg = distance_km × base_factor × load_multiplier × speed_efficiency_factor
+```
+
+Cold-chain vehicles apply an additional **refrigeration load factor (1.25×)** per ASHRAE standard.
 
 ---
 
-<p align="center">
-  <b>Green Pulse</b> — Empowering the Supply Chain to heal the Earth. <br/>
-  <i>Engineered for the Hackfor Green Earth Hackathon.</i>
-</p>
+## 📊 API Reference
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/health` | GET | Service health check |
+| `/api/fleet` | GET | Current state of all vehicles |
+| `/api/fleet-intel` | GET | Fleet + ETA + window aggregations |
+| `/api/route-summary` | GET | Per-route CO₂ totals + compliance % |
+| `/api/chat` | POST | GreenAI query (body: `{"query": "..."}`) |
+| `/api/alerts` | GET | Alert history (last 50 events) |
+
+---
+
+## 🏭 Routes & Corridors
+
+| Route | Corridor | Distance | Vehicles |
+|-------|----------|----------|---------|
+| `delhi_mumbai` | NH48 — Delhi → Agra → Jabalpur → Vadodara → Mumbai | ~1,400 km | TRK_001, TRK_002, TRK_003, TRK_004 |
+| `chennai_bangalore` | NH44 — Chennai → Vellore → Krishnagiri → Bangalore | ~350 km | TRK_005, TRK_006, TRK_007 |
+| `kolkata_patna` | NH19 — Kolkata → Asansol → Gaya → Patna | ~580 km | TRK_008, TRK_009, TRK_010 |
+
+---
+
+## 🧪 Demo Script
+
+1. Start the stack (`start.bat` or Docker + FastAPI + Next.js manually)
+2. Open `http://localhost:3000`
+3. Watch the map — ghost paths update every 2 seconds
+4. Trigger a demo spike: `python -c "import simulate_pipeline; simulate_pipeline.trigger_spike('TRK_003')"`
+5. Observe `HIGH_EMISSION_ALERT` on the map + metrics panel
+6. Ask GreenAI: *"Which route has the worst NLP 2022 compliance and why?"*
+
+---
+
+## 📈 Business Model
+
+| Stream | Description | Pricing |
+|--------|-------------|---------|
+| **Fleet SaaS** | Per-fleet carbon intelligence dashboard | ₹8,000–25,000/month |
+| **Carbon MRV** | Verified carbon credit generation (BEE-ICM ready) | 2% of credits issued |
+| **Compliance API** | Real-time CO₂ data for 3PLs, insurers, NLP auditors | Enterprise licensing |
+
+**Market:** $180B India logistics by 2030 (IBEF) · ₹430–680/tonne carbon credits (BEE-ICM 2024)
+
+---
+
+## 🛣️ Roadmap
+
+- [x] **v1.0** — Core telemetry pipeline, IPCC CO₂ computation, Gemini RAG chat
+- [x] **v2.0** — Dual-stream ETA engine, ghost path predictions, cold-chain monitoring, Docker containerization
+- [ ] **2026 Q3** — Live pilot with 3 fleet operators on NH48; BEE-ICM MRV certification
+- [ ] **2027** — 500+ vehicle support; DFC rail carbon integration
+- [ ] **2028** — Full Scope 3 supply chain ledger; India Carbon Market integration
+
+---
+
+## 🔧 Environment Variables
+
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+DEMO_MODE=0          # Set to 1 to use pre-recorded demo data
+TMP_DIR=./tmp        # Override for Docker volume path
+LOG_LEVEL=INFO
+```
+
+---
+
+## 📚 Data Sources & Citations
+
+- **IPCC AR6 WGIII (2022)** — Emission factors for road freight transport
+- **India National Logistics Policy 2022 (NLP 2022)** — Ministry of Commerce & Industry
+- **BEE India Carbon Market (ICM) Guidelines 2024** — Bureau of Energy Efficiency
+- **IBEF India Logistics Report 2023** — India Brand Equity Foundation
+- **La Poste × Pathway** — Reference architecture for dual-stream logistics pipelines
+
+---
+
+## 🤝 Contributing
+
+Contributions welcome. Please open an issue before submitting a PR for significant changes.
+
+---
+
+## 📄 License
+
+MIT License — see [LICENSE](LICENSE)
+
+---
