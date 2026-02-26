@@ -1,0 +1,18 @@
+import { NextResponse } from "next/server";
+
+const DEMO_FLEET = [
+    { vehicle_id: "TRK-DL-001", timestamp: Date.now() / 1000, latitude: 22.31, longitude: 73.18, fuel_consumed_liters: 3.2, speed_kmph: 62, route_id: "delhi_mumbai", co2_kg: 8.38, status: "NORMAL", deviation_status: "OK", co2_saved_kg: 0.42, load_status: "LADEN", engine_temp_c: 91, tyre_pressure_psi: 38, cargo_type: "Electronics", weather: "Clear" },
+    { vehicle_id: "TRK-DL-002", timestamp: Date.now() / 1000, latitude: 24.58, longitude: 74.63, fuel_consumed_liters: 3.8, speed_kmph: 55, route_id: "delhi_mumbai", co2_kg: 9.95, status: "WARNING", deviation_status: "OK", co2_saved_kg: 0.18, load_status: "LADEN", engine_temp_c: 94, tyre_pressure_psi: 36, cargo_type: "Auto Parts", weather: "Haze" },
+    { vehicle_id: "TRK-DL-003", timestamp: Date.now() / 1000, latitude: 26.12, longitude: 73.02, fuel_consumed_liters: 2.9, speed_kmph: 68, route_id: "delhi_mumbai", co2_kg: 7.59, status: "NORMAL", deviation_status: "OK", co2_saved_kg: 0.61, load_status: "LADEN", engine_temp_c: 89, tyre_pressure_psi: 39, cargo_type: "Textiles", weather: "Clear" },
+    { vehicle_id: "TRK-DL-004", timestamp: Date.now() / 1000, latitude: 21.17, longitude: 72.83, fuel_consumed_liters: 4.1, speed_kmph: 48, route_id: "delhi_mumbai", co2_kg: 10.74, status: "HIGH_EMISSION_ALERT", deviation_status: "DEVIATED", co2_saved_kg: 0.0, load_status: "LADEN", engine_temp_c: 102, tyre_pressure_psi: 34, cargo_type: "Chemicals", weather: "Rain" },
+    { vehicle_id: "TRK-CH-001", timestamp: Date.now() / 1000, latitude: 12.91, longitude: 77.65, fuel_consumed_liters: 2.1, speed_kmph: 54, route_id: "chennai_bangalore", co2_kg: 5.50, status: "NORMAL", deviation_status: "OK", co2_saved_kg: 0.73, load_status: "LADEN", engine_temp_c: 88, tyre_pressure_psi: 40, cargo_type: "FMCG", weather: "Clear" },
+    { vehicle_id: "TRK-CH-002", timestamp: Date.now() / 1000, latitude: 12.73, longitude: 77.83, fuel_consumed_liters: 2.4, speed_kmph: 61, route_id: "chennai_bangalore", co2_kg: 6.28, status: "NORMAL", deviation_status: "OK", co2_saved_kg: 0.55, load_status: "LADEN", engine_temp_c: 90, tyre_pressure_psi: 38, cargo_type: "Auto Components", weather: "Clear" },
+    { vehicle_id: "TRK-CH-003", timestamp: Date.now() / 1000, latitude: 12.50, longitude: 77.97, fuel_consumed_liters: 2.8, speed_kmph: 45, route_id: "chennai_bangalore", co2_kg: 7.33, status: "NORMAL", deviation_status: "OK", co2_saved_kg: 0.38, load_status: "LADEN", engine_temp_c: 87, tyre_pressure_psi: 39, cargo_type: "Pharma", weather: "Fog" },
+    { vehicle_id: "TRK-KL-001", timestamp: Date.now() / 1000, latitude: 24.80, longitude: 84.99, fuel_consumed_liters: 3.5, speed_kmph: 58, route_id: "kolkata_patna", co2_kg: 9.16, status: "WARNING", deviation_status: "OK", co2_saved_kg: 0.22, load_status: "LADEN", engine_temp_c: 95, tyre_pressure_psi: 37, cargo_type: "Steel Coils", weather: "Clear" },
+    { vehicle_id: "TRK-KL-002", timestamp: Date.now() / 1000, latitude: 24.10, longitude: 85.40, fuel_consumed_liters: 3.0, speed_kmph: 64, route_id: "kolkata_patna", co2_kg: 7.85, status: "NORMAL", deviation_status: "OK", co2_saved_kg: 0.48, load_status: "LADEN", engine_temp_c: 92, tyre_pressure_psi: 38, cargo_type: "Cement", weather: "Clear" },
+    { vehicle_id: "TRK-KL-003", timestamp: Date.now() / 1000, latitude: 25.10, longitude: 85.14, fuel_consumed_liters: 2.7, speed_kmph: 52, route_id: "kolkata_patna", co2_kg: 7.07, status: "NORMAL", deviation_status: "OK", co2_saved_kg: 0.58, load_status: "LADEN", engine_temp_c: 89, tyre_pressure_psi: 39, cargo_type: "Consumer Goods", weather: "Clear" },
+];
+
+export async function GET() {
+    return NextResponse.json(DEMO_FLEET);
+}
