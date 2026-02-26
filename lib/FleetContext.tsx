@@ -123,26 +123,88 @@ export function FleetProvider({ children }: { children: ReactNode }) {
         // Derive anomalies
         const newAnomalies: AnomalyEntry[] = [];
         for (const v of data) {
+            const ts = v.timestamp;
+            const vid = v.vehicle_id;
+
+            // 1. HIGH EMISSION
             if (v.status === "HIGH_EMISSION_ALERT") {
                 newAnomalies.push({
-                    id: `${v.vehicle_id}-${v.timestamp}`,
-                    timestamp: v.timestamp,
-                    vehicle_id: v.vehicle_id,
+                    id: `${vid}-${ts}`, timestamp: ts, vehicle_id: vid,
                     type: "HIGH_EMISSION_ALERT",
+                    severity: "WARNING",
                     detail: `CO₂: ${v.co2_kg?.toFixed(2)} kg | Fuel: ${v.fuel_consumed_liters?.toFixed(2)} L`,
+                    action_required: "Review route efficiency and driver behavior."
                 });
             }
+
+            // 2. ROUTE DEVIATION
             if (v.deviation_status && !v.deviation_status.startsWith("OK")) {
                 const parts = v.deviation_status.split("|");
                 newAnomalies.push({
-                    id: `${v.vehicle_id}-dev-${v.timestamp}`,
-                    timestamp: v.timestamp,
-                    vehicle_id: v.vehicle_id,
+                    id: `${vid}-dev-${ts}`, timestamp: ts, vehicle_id: vid,
                     type: "ROUTE_DEVIATION_ALERT",
+                    severity: "WARNING",
                     detail: parts.slice(1).join(" | "),
+                    action_required: "Contact driver to verify detour reason."
+                });
+            }
+
+            // 3. TEMPERATURE BREACH (cold chain)
+            if (v.temperature_breach && v.temperature_c !== undefined) {
+                newAnomalies.push({
+                    id: `${vid}-temp-${ts}`, timestamp: ts, vehicle_id: vid,
+                    type: "TEMPERATURE_BREACH",
+                    severity: "CRITICAL",
+                    detail: `Cargo temp ${v.temperature_c}°C — outside SLA band. Risk: product spoilage / rejection.`,
+                    action_required: "Notify driver to check refrigeration unit. Alert consignee."
+                });
+            }
+
+            // 4. OVERLOAD VIOLATION
+            if (v.overload_pct && v.overload_pct > 0) {
+                newAnomalies.push({
+                    id: `${vid}-overload-${ts}`, timestamp: ts, vehicle_id: vid,
+                    type: "OVERLOAD_VIOLATION",
+                    severity: v.overload_pct > 10 ? "CRITICAL" : "WARNING",
+                    detail: `Load ${v.load_weight_kg}kg exceeds ${v.container_size_ft}ft capacity by ${v.overload_pct.toFixed(1)}%. Fine risk: ~₹8,000 (MV Act Sec 194).`,
+                    action_required: "Halt at next weighbridge. Redistribute or offload cargo."
+                });
+            }
+
+            // 5. ETA CRITICAL DELAY
+            if (v.eta_status === "DELAYED") {
+                newAnomalies.push({
+                    id: `${vid}-delay-${ts}`, timestamp: ts, vehicle_id: vid,
+                    type: "ETA_CRITICAL_DELAY",
+                    severity: "CRITICAL",
+                    detail: `Shipment ETA delayed by ${v.eta_hours?.toFixed(1)} hrs past promised delivery.`,
+                    action_required: "Notify Consignee. Escalate to Logistics Manager."
+                });
+            }
+
+            // 6. CARGO DAMAGE
+            if (v.cargo_condition === "SUSPECTED_DAMAGE") {
+                newAnomalies.push({
+                    id: `${vid}-dmg-${ts}`, timestamp: ts, vehicle_id: vid,
+                    type: "CARGO_DAMAGE_SUSPECTED",
+                    severity: "WARNING",
+                    detail: `Sensor telemetry suggests cargo shift or damage.`,
+                    action_required: "Instruct driver to inspect cargo hold safely."
+                });
+            }
+
+            // 7. ACCIDENT RISK
+            if (v.weather_severity === "HEAVY_RAIN" && v.speed_kmph > 60) {
+                newAnomalies.push({
+                    id: `${vid}-acc-${ts}`, timestamp: ts, vehicle_id: vid,
+                    type: "ACCIDENT_RISK",
+                    severity: "CRITICAL",
+                    detail: `High speed (${v.speed_kmph} km/h) in HEAVY_RAIN conditions.`,
+                    action_required: "Issue immediate slow-down automated call to driver."
                 });
             }
         }
+
         if (newAnomalies.length) {
             setAnomalies(prev => [...newAnomalies, ...prev].slice(0, MAX_ANOMALIES));
         }

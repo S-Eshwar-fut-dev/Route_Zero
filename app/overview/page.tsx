@@ -13,6 +13,8 @@ export default function OverviewPage() {
     const { vehicles, vehicleHistory, anomalies, stats, resolveAnomaly, selectedVehicleId, setSelectedVehicleId, etaVehicles } = useFleet();
     const isLoading = vehicles.length === 0;
 
+    const [driverDrawer, setDriverDrawer] = useState(false);
+
     /* ── ETA lookup map ── */
     const etaMap = new Map(etaVehicles.map(e => [e.vehicle_id, e]));
 
@@ -48,17 +50,16 @@ export default function OverviewPage() {
                 {/* Demo spike button */}
                 <button
                     onClick={async () => {
-                        const targets = vehicles.filter(v => v.status !== "HIGH_EMISSION_ALERT");
-                        const t = targets.length ? targets[Math.floor(Math.random() * targets.length)] : vehicles[0];
-                        if (t) { await postSpike(t.vehicle_id); showToast(`⚠️ Spike sent to ${t.vehicle_id}`); }
+                        const t = vehicles.find(v => v.status === "NORMAL") || vehicles[0];
+                        if (t) { await postSpike(t.vehicle_id); showToast(`⚠️ Synthetic Anomaly injected into ${t.vehicle_id}`); }
                     }}
                     style={{
-                        background: "#ef444422", border: "1px solid #ef4444", color: "#ef4444",
+                        background: "#f59e0b22", border: "1px solid #f59e0b", color: "#f59e0b",
                         borderRadius: 8, padding: "6px 16px", fontWeight: 600, fontSize: "0.78rem",
                         cursor: "pointer",
                     }}
                 >
-                    🔴 Trigger Spike Alert
+                    ⚡ Inject Risk Spike
                 </button>
             </div>
 
@@ -77,7 +78,7 @@ export default function OverviewPage() {
 
             {/* ═══ ROW 1: Map + KPIs ═══ */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 16, height: "55vh", minHeight: 360 }}>
-                <div style={{ borderRadius: 14, overflow: "hidden", border: "1px solid #1e293b" }}>
+                <div style={{ borderRadius: 14, overflow: "hidden", border: "1px solid #1e293b", position: "relative" }}>
                     <IndiaMap
                         vehicles={vehicles}
                         onVehicleClick={setSelectedVehicleId}
@@ -85,12 +86,6 @@ export default function OverviewPage() {
                     />
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                    <KpiCard label="Total CO₂ Emitted" value={stats.totalCo2.toFixed(1)} unit="kg" loading={isLoading} />
-                    <KpiCard label="Fleet Avg Efficiency" value={stats.avgEfficiency.toFixed(2)} unit="km/L" loading={isLoading}
-                        delta={stats.avgEfficiency > 3.5 ? "+12% above avg" : "-8% below avg"} />
-                    <KpiCard label="CO₂ Saved Today" value={stats.totalSaved.toFixed(1)} unit="kg" highlight glow
-                        loading={isLoading} invertColor
-                        delta={stats.totalSaved > 0 ? `+${stats.totalSaved.toFixed(1)} saved` : "Accumulating…"} />
                     <KpiCard
                         label="On-Time Deliveries"
                         value={`${stats.onTimeCount}/${stats.vehicleCount}`}
@@ -100,6 +95,15 @@ export default function OverviewPage() {
                         glow={stats.delayedCount === 0}
                         delta={stats.delayedCount > 0 ? `⚠ ${stats.delayedCount} delayed` : "All on schedule"}
                     />
+                    <KpiCard label="Active Anomalies" value={anomalies.length.toString()} unit="critical" loading={isLoading}
+                        highlight={anomalies.length > 0}
+                        delta={anomalies.length > 0 ? "Requires action" : "All clear"}
+                        invertColor={anomalies.length > 0} />
+                    <KpiCard label="Shipments At Risk" value={stats.alertCount.toString()} unit="loads" loading={isLoading}
+                        delta={`${stats.alertCount} conditions out of SLA`} />
+                    <KpiCard label="CO₂ Saved (Secondary)" value={stats.totalSaved.toFixed(1)} unit="kg"
+                        loading={isLoading}
+                        delta={`+${stats.totalSaved.toFixed(1)} vs baseline`} />
                 </div>
             </div>
 
@@ -236,50 +240,59 @@ export default function OverviewPage() {
                     )}
                 </div>
 
-                {/* Resolution Center */}
+                {/* Shipment Health / Anomalies Panel */}
                 <div style={{ background: "#0d1421", border: "1px solid #1e293b", borderRadius: 14, padding: 16, display: "flex", flexDirection: "column", overflow: "hidden" }}>
                     <h3 style={{ color: "#f0f6fc", margin: "0 0 12px", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                        Resolution Center
+                        Shipment Health
                     </h3>
                     <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8 }}>
                         {anomalies.length === 0 ? (
                             <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6 }}>
                                 <span style={{ fontSize: "1.5rem" }}>✅</span>
-                                <span style={{ color: "#4b5563", fontSize: "0.78rem" }}>All Systems Nominal</span>
+                                <span style={{ color: "#4b5563", fontSize: "0.78rem" }}>All Cargo Conditions Nominal</span>
                             </div>
                         ) : (
                             anomalies.slice(0, 8).map(a => {
-                                const isHigh = a.type === "HIGH_EMISSION_ALERT";
+                                const isCritical = a.severity === "CRITICAL";
+                                const isWarning = a.severity === "WARNING";
+                                const isBlue = a.type === "TEMPERATURE_BREACH";
+
+                                const baseColor = isBlue ? "#00d4ff" : isCritical ? "#ef4444" : "#f59e0b";
+                                const bgColor = `${baseColor}08`;
+
                                 return (
                                     <div key={a.id} className="slide-in" style={{
-                                        background: isHigh ? "#ef444408" : "#f59e0b08",
-                                        borderLeft: `3px solid ${isHigh ? "#ef4444" : "#f59e0b"}`,
+                                        background: bgColor,
+                                        borderLeft: `3px solid ${baseColor}`,
                                         borderRadius: "0 8px 8px 0",
                                         padding: "10px 12px",
                                     }}>
                                         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                                            <span style={{ color: isHigh ? "#ef4444" : "#f59e0b", fontSize: "0.65rem", fontWeight: 700 }}>
+                                            <span style={{ color: baseColor, fontSize: "0.65rem", fontWeight: 700 }}>
                                                 {a.type.replace(/_/g, " ")}
                                             </span>
                                             <span style={{ color: "#4b5563", fontSize: "0.62rem" }}>
                                                 {new Date(a.timestamp * 1000).toLocaleTimeString("en-IN")}
                                             </span>
                                         </div>
-                                        <div style={{ color: "#f0f6fc", fontSize: "0.72rem", marginBottom: 8 }}>
+                                        <div style={{ color: "#f0f6fc", fontSize: "0.72rem", marginBottom: 6 }}>
                                             <strong>{a.vehicle_id}</strong>: {a.detail}
+                                        </div>
+                                        <div style={{ color: "#8b949e", fontSize: "0.65rem", fontStyle: "italic", marginBottom: 8 }}>
+                                            Next Best Action: {a.action_required}
                                         </div>
                                         <div style={{ display: "flex", gap: 6 }}>
                                             <button
-                                                onClick={() => { resolveAnomaly(a.id); showToast("📍 Route recalculated"); }}
+                                                onClick={() => { resolveAnomaly(a.id); showToast("📍 Acknowledged event"); }}
                                                 style={{ background: "#00ff8715", border: "1px solid #00ff8733", color: "#00ff87", borderRadius: 6, padding: "3px 8px", fontSize: "0.62rem", fontWeight: 600, cursor: "pointer" }}
                                             >
-                                                Recalculate
+                                                Acknowledge
                                             </button>
                                             <button
-                                                onClick={() => showToast(`📱 Driver ${driverName(a.vehicle_id)} notified`)}
-                                                style={{ background: "#f59e0b15", border: "1px solid #f59e0b33", color: "#f59e0b", borderRadius: 6, padding: "3px 8px", fontSize: "0.62rem", fontWeight: 600, cursor: "pointer" }}
+                                                onClick={() => { setSelectedVehicleId(a.vehicle_id); setDriverDrawer(true); }}
+                                                style={{ background: `${baseColor}15`, border: `1px solid ${baseColor}33`, color: baseColor, borderRadius: 6, padding: "3px 8px", fontSize: "0.62rem", fontWeight: 600, cursor: "pointer" }}
                                             >
-                                                Notify Driver
+                                                Contact Driver
                                             </button>
                                         </div>
                                     </div>
@@ -320,6 +333,58 @@ export default function OverviewPage() {
                     )}
                 </div>
             </div>
+
+            {/* Sliding Drawer: Driver Notification */}
+            {driverDrawer && selectedVehicle && (
+                <div style={{
+                    position: "fixed", bottom: 0, left: 64, right: 0, height: 280,
+                    background: "#0a0f1a", borderTop: "1px solid #1e293b",
+                    zIndex: 1000, boxShadow: "0 -10px 40px rgba(0,0,0,0.5)",
+                    display: "flex", flexDirection: "column", animation: "slide-up 0.3s ease-out"
+                }}>
+                    <div style={{ padding: "16px 24px", borderBottom: "1px solid #1e293b", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div>
+                            <h3 style={{ color: "#f0f6fc", margin: 0, fontSize: "1.1rem" }}>Driver Action Required</h3>
+                            <p style={{ color: "#8b949e", margin: "4px 0 0", fontSize: "0.8rem" }}>
+                                {driverName(selectedVehicle.vehicle_id)} — {selectedVehicle.vehicle_id}
+                            </p>
+                        </div>
+                        <button onClick={() => setDriverDrawer(false)} style={{ background: "none", border: "none", color: "#8b949e", cursor: "pointer", fontSize: "1.5rem" }}>×</button>
+                    </div>
+                    <div style={{ padding: 24, display: "flex", gap: 24, flex: 1 }}>
+                        <div style={{ flex: 1 }}>
+                            <label style={{ color: "#8b949e", fontSize: "0.75rem", textTransform: "uppercase", marginBottom: 8, display: "block" }}>Notification Context</label>
+                            <textarea
+                                defaultValue={`URGENT: ${selectedVehicle.vehicle_id}\n\nPlease check your load immediately. Telemetry indicates a potential issue affecting cargo health or compliance. Acknowledge this message once inspected.`}
+                                style={{
+                                    width: "100%", height: "120px", background: "#111827", border: "1px solid #1e293b",
+                                    borderRadius: 8, color: "#f0f6fc", padding: 12, fontSize: "0.85rem", resize: "none"
+                                }}
+                            />
+                        </div>
+                        <div style={{ width: 280, display: "flex", flexDirection: "column", gap: 12, justifyContent: "center" }}>
+                            <button
+                                onClick={() => { showToast("📲 SMS Dispatched to Driver"); setDriverDrawer(false); }}
+                                style={{ background: "#3b82f6", color: "#fff", border: "none", padding: "12px", borderRadius: 8, fontWeight: 600, cursor: "pointer" }}
+                            >
+                                Dispatch via SMS
+                            </button>
+                            <button
+                                onClick={() => { showToast("🟢 WhatsApp Message Sent"); setDriverDrawer(false); }}
+                                style={{ background: "#10b981", color: "#fff", border: "none", padding: "12px", borderRadius: 8, fontWeight: 600, cursor: "pointer" }}
+                            >
+                                Dispatch via WhatsApp
+                            </button>
+                            <button
+                                onClick={() => { showToast("📞 Calling Driver..."); setDriverDrawer(false); }}
+                                style={{ background: "transparent", color: "#f0f6fc", border: "1px solid #374151", padding: "12px", borderRadius: 8, fontWeight: 600, cursor: "pointer" }}
+                            >
+                                Initiate Voice Call
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

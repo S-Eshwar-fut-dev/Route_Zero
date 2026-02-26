@@ -61,10 +61,34 @@ interface Props {
     height?: string;
 }
 
-function statusColor(s: VehicleEvent["status"]) {
-    if (s === "HIGH_EMISSION_ALERT") return "#ef4444";
-    if (s === "WARNING") return "#f59e0b";
-    return "#00ff87";
+function getMarkerState(v: VehicleEvent, anomalies: any[]) {
+    // Check if this vehicle has any active anomalies
+    const vehicleAnomalies = anomalies.filter(a => a.vehicle_id === v.vehicle_id);
+
+    let color = "#00ff87"; // Default Normal
+    let isAlert = false;
+    let pulseType = "";
+
+    if (vehicleAnomalies.length > 0) {
+        // Prioritize critical over warning
+        const criticals = vehicleAnomalies.filter(a => a.severity === "CRITICAL");
+        const warnings = vehicleAnomalies.filter(a => a.severity === "WARNING");
+
+        isAlert = true;
+
+        if (criticals.some(a => a.type === "TEMPERATURE_BREACH")) {
+            color = "#00d4ff"; // Blue for cold chain
+            pulseType = "pulse-blue";
+        } else if (criticals.length > 0) {
+            color = "#ef4444"; // Red for other criticals
+            pulseType = "pulse-red";
+        } else if (warnings.length > 0) {
+            color = "#f59e0b"; // Orange for warnings
+            pulseType = "pulse-orange";
+        }
+    }
+
+    return { color, isAlert, pulseType };
 }
 
 function etaStatusColor(eta?: string) {
@@ -73,10 +97,10 @@ function etaStatusColor(eta?: string) {
     return "#00ff87";
 }
 
-function makeIcon(color: string, isAlert: boolean, etaStatus?: string) {
+function makeIcon(color: string, isAlert: boolean, pulseType: string, etaStatus?: string) {
     if (typeof window === "undefined") return undefined;
     const L = require("leaflet");
-    const pulse = isAlert ? `animation: pulse-red 1.5s ease-out infinite;` : "";
+    const pulse = isAlert ? `animation: ${pulseType || "pulse-red"} 1.5s ease-out infinite;` : "";
 
     const delayBadge = etaStatus === "DELAYED"
         ? `<div style="position:absolute;top:-18px;left:50%;transform:translateX(-50%);
@@ -96,11 +120,14 @@ function makeIcon(color: string, isAlert: boolean, etaStatus?: string) {
     });
 }
 
+import { useFleet } from "@/lib/FleetContext";
+
 export default function IndiaMap({
     vehicles, onVehicleClick, selectedVehicleId,
     singleRoute, singleVehicle, height = "100%",
 }: Props) {
     const mapRef = useRef<any>(null);
+    const { anomalies } = useFleet();
 
     useEffect(() => {
         if (mapRef.current) setTimeout(() => mapRef.current?.invalidateSize(), 150);
@@ -167,14 +194,17 @@ export default function IndiaMap({
 
                 {/* Truck markers */}
                 {vehicles.map(v => {
-                    const color = statusColor(v.status);
-                    const isAlert = v.status === "HIGH_EMISSION_ALERT";
-                    const icon = makeIcon(color, isAlert, v.eta_status);
+                    const { color, isAlert, pulseType } = getMarkerState(v, anomalies);
+                    const icon = makeIcon(color, isAlert, pulseType, v.eta_status);
                     const etaLine = v.eta_hours != null && v.eta_hours < 99
                         ? `<div>ETA: <strong>${v.eta_hours.toFixed?.(1) ?? v.eta_hours}h</strong>
                            <span style="color:${etaStatusColor(v.eta_status)}">${v.eta_status ?? ""}</span></div>`
                         : "";
                     const customerLine = v.customer ? `<div style="color:#8b949e;font-size:11px;">→ ${v.customer}</div>` : "";
+
+                    // Anomalies for tooltip
+                    const vAnomalies = anomalies.filter(a => a.vehicle_id === v.vehicle_id);
+
                     return (
                         <Marker
                             key={v.vehicle_id}
@@ -186,21 +216,40 @@ export default function IndiaMap({
                                 <div style={{
                                     color: "#f0f6fc", background: "#0d1421",
                                     padding: "10px 14px", borderRadius: 8,
-                                    minWidth: 180, fontSize: "0.8rem",
+                                    minWidth: 200, fontSize: "0.8rem",
                                     border: "1px solid #1e293b",
                                 }}>
                                     <strong style={{ color, fontSize: "0.85rem" }}>{v.vehicle_id}</strong>
                                     <div style={{ color: "#8b949e", fontSize: "0.72rem", marginBottom: 6 }}>
                                         {v.route_id.replace(/_/g, " → ")}
                                     </div>
-                                    <div>CO₂: <strong>{v.co2_kg?.toFixed(2)} kg</strong></div>
-                                    <div>Speed: {v.speed_kmph?.toFixed(1)} km/h</div>
-                                    <div>Fuel: {v.fuel_consumed_liters?.toFixed(2)} L</div>
+                                    <div style={{ paddingBottom: 6, borderBottom: "1px solid #1e293b", marginBottom: 6 }}>
+                                        <div>Cargo: <strong>{v.cargo_type}</strong></div>
+                                        {v.temperature_c !== undefined && (
+                                            <div>Temp: <strong style={{ color: v.temperature_breach ? "#00d4ff" : "inherit" }}>{v.temperature_c}°C</strong></div>
+                                        )}
+                                        {v.overload_pct !== undefined && v.overload_pct > 0 && (
+                                            <div>Load: <strong style={{ color: "#ef4444" }}>OVERLOADED (+{v.overload_pct}%)</strong></div>
+                                        )}
+                                        {v.overload_pct !== undefined && v.overload_pct <= 0 && (
+                                            <div>Load: <strong>OK</strong></div>
+                                        )}
+                                    </div>
                                     <div dangerouslySetInnerHTML={{ __html: etaLine }} />
                                     <div dangerouslySetInnerHTML={{ __html: customerLine }} />
-                                    <div style={{ marginTop: 4, color, fontWeight: 600, fontSize: "0.72rem" }}>
-                                        {v.status.replace(/_/g, " ")}
-                                    </div>
+
+                                    {vAnomalies.length > 0 ? (
+                                        <div style={{ marginTop: 6, color, fontWeight: 600, fontSize: "0.72rem", display: "flex", flexDirection: "column", gap: 2 }}>
+                                            {vAnomalies.slice(0, 2).map(a => (
+                                                <span key={a.id}>⚠ {a.type.replace(/_/g, " ")}</span>
+                                            ))}
+                                            {vAnomalies.length > 2 && <span style={{ color: "#8b949e", fontSize: "0.6rem" }}>+{vAnomalies.length - 2} more issues</span>}
+                                        </div>
+                                    ) : (
+                                        <div style={{ marginTop: 6, color: "#00ff87", fontWeight: 600, fontSize: "0.72rem" }}>
+                                            ALL CLEAR
+                                        </div>
+                                    )}
                                 </div>
                             </Popup>
                         </Marker>
@@ -222,19 +271,21 @@ export default function IndiaMap({
                 </div>
             )}
 
-            {/* Bottom-left: Emissions intensity legend */}
+            {/* Bottom-left: Condition Legend */}
             {!singleVehicle && (
                 <div style={{
                     position: "absolute", bottom: 12, left: 12, zIndex: 1000,
                     background: "rgba(13,20,33,0.9)", border: "1px solid #1e293b",
                     borderRadius: 8, padding: "8px 12px", pointerEvents: "none",
                 }}>
-                    <div style={{ color: "#8b949e", fontSize: "0.6rem", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>
-                        Emissions Intensity
+                    <div style={{ color: "#8b949e", fontSize: "0.6rem", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>
+                        Condition Legend
                     </div>
-                    <div style={{ width: 100, height: 5, borderRadius: 3, background: "linear-gradient(to right, #00ff87, #f59e0b, #ef4444)", marginBottom: 3 }} />
-                    <div style={{ display: "flex", justifyContent: "space-between", color: "#4b5563", fontSize: "0.55rem" }}>
-                        <span>Low</span><span>Medium</span><span>High</span>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6, fontSize: "0.65rem", color: "#f0f6fc" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}><div style={{ width: 10, height: 10, borderRadius: "50%", background: "#00ff87" }} /> Normal</div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}><div style={{ width: 10, height: 10, borderRadius: "50%", background: "#f59e0b" }} /> Warning</div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}><div style={{ width: 10, height: 10, borderRadius: "50%", background: "#ef4444" }} /> Critical</div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}><div style={{ width: 10, height: 10, borderRadius: "50%", background: "#00d4ff" }} /> SLA Breach (Colchain)</div>
                     </div>
                 </div>
             )}

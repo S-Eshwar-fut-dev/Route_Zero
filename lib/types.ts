@@ -23,6 +23,36 @@ export interface VehicleEvent {
     order_id?: string;
     customer?: string;
     destination?: string;
+
+    // v3.0 - Cold Chain / Condition Monitoring
+    temperature_c?: number;
+    humidity_pct?: number;
+    temperature_breach?: boolean;
+
+    // v3.0 - Load & Compliance
+    load_weight_kg?: number;
+    vehicle_capacity_kg?: number;
+    container_size_ft?: number;
+    overload_pct?: number;
+    load_status_detail?: "WITHIN_LIMIT" | "NEAR_LIMIT" | "OVERLOADED" | "EMPTY";
+
+    // v3.0 - Shipment / Order
+    shipment_id?: string;
+    cargo_condition?: "INTACT" | "DAMAGED" | "SUSPECTED_DAMAGE";
+    consignee?: string;
+    origin?: string;
+    promised_delivery_dt?: string;
+
+    // v3.0 - Environmental Context
+    traffic_congestion?: "LOW" | "MODERATE" | "HIGH" | "BLOCKED";
+    weather_severity?: "CLEAR" | "RAIN" | "HEAVY_RAIN" | "FOG" | "STORM";
+    road_hazard?: string;
+
+    // v3.0 - Anomaly Flags
+    route_deviation_km?: number;
+    unauthorized_stop_minutes?: number;
+    accident_flag?: boolean;
+    fine_risk?: "NONE" | "OVERLOAD" | "ROUTE_VIOLATION" | "SPEED";
 }
 
 export interface ETAEntry {
@@ -57,8 +87,10 @@ export interface AnomalyEntry {
     id: string;
     timestamp: number;
     vehicle_id: string;
-    type: "HIGH_EMISSION_ALERT" | "ROUTE_DEVIATION_ALERT";
+    type: "HIGH_EMISSION_ALERT" | "ROUTE_DEVIATION_ALERT" | "TEMPERATURE_BREACH" | "OVERLOAD_VIOLATION" | "UNAUTHORIZED_STOP" | "ACCIDENT_RISK" | "FINE_RISK" | "CARGO_DAMAGE_SUSPECTED" | "ETA_CRITICAL_DELAY";
+    severity?: "INFO" | "WARNING" | "CRITICAL";
     detail: string;
+    action_required?: string;
 }
 
 export interface ChartDataPoint {

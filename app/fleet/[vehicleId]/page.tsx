@@ -6,7 +6,6 @@ import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useFleet, driverName } from "@/lib/FleetContext";
 import KpiCard from "@/components/KpiCard";
-import VehicleEmissionsChart from "@/components/VehicleEmissionsChart";
 import { postQuery } from "@/lib/api";
 
 const IndiaMap = dynamic(() => import("@/components/IndiaMap"), { ssr: false });
@@ -80,63 +79,122 @@ export default function VehicleDetailPage() {
                 <KpiCard label="Efficiency" value={efficiency} unit="km/L" loading={!vehicle} />
             </div>
 
-            {/* Emissions chart */}
-            <VehicleEmissionsChart history={history} />
+            {/* Shipment Info Card */}
+            {vehicle && (
+                <div style={{ background: "#0d1421", border: "1px solid #1e293b", borderRadius: 14, padding: "16px 20px", display: "flex", gap: 32, flexWrap: "wrap" }}>
+                    <div>
+                        <div style={{ color: "#8b949e", fontSize: "0.68rem", textTransform: "uppercase", marginBottom: 4 }}>Shipment ID</div>
+                        <div style={{ color: "#f0f6fc", fontSize: "0.9rem", fontWeight: 600 }}>{vehicle.shipment_id || "Unassigned"}</div>
+                    </div>
+                    <div>
+                        <div style={{ color: "#8b949e", fontSize: "0.68rem", textTransform: "uppercase", marginBottom: 4 }}>Cargo Type</div>
+                        <div style={{ color: "#f0f6fc", fontSize: "0.9rem", fontWeight: 600 }}>{vehicle.container_size_ft || 0}ft {vehicle.cargo_type}</div>
+                    </div>
+                    <div>
+                        <div style={{ color: "#8b949e", fontSize: "0.68rem", textTransform: "uppercase", marginBottom: 4 }}>Consignee</div>
+                        <div style={{ color: "#f0f6fc", fontSize: "0.9rem", fontWeight: 600 }}>{vehicle.consignee || "—"}</div>
+                    </div>
+                    <div>
+                        <div style={{ color: "#8b949e", fontSize: "0.68rem", textTransform: "uppercase", marginBottom: 4 }}>Destination</div>
+                        <div style={{ color: "#f0f6fc", fontSize: "0.9rem", fontWeight: 600 }}>{vehicle.destination}</div>
+                    </div>
+                    <div>
+                        <div style={{ color: "#8b949e", fontSize: "0.68rem", textTransform: "uppercase", marginBottom: 4 }}>Delivery SLA</div>
+                        <div style={{ color: vehicle.eta_status === "DELAYED" ? "#ef4444" : "#f0f6fc", fontSize: "0.9rem", fontWeight: 600 }}>
+                            {vehicle.promised_delivery_dt ? new Date(vehicle.promised_delivery_dt).toLocaleDateString("en-IN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "—"}
+                        </div>
+                    </div>
+                </div>
+            )}
 
-            {/* Bottom row: Health + Mini Map */}
+            {/* Bottom row: Monitors + Mini Map */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 400px", gap: 16 }}>
-                {/* Vehicle Health */}
-                <div style={{ background: "#0d1421", border: "1px solid #1e293b", borderRadius: 14, padding: 20 }}>
-                    <h3 style={{ color: "#f0f6fc", margin: "0 0 16px", fontSize: "0.82rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                        Vehicle Health
-                    </h3>
-                    {vehicle ? (
-                        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                            {/* Health pills */}
-                            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                                {[
-                                    { label: "Engine Temp", ok: vehicle.co2_kg < 10, good: "Normal", bad: "Warning" },
-                                    { label: "Tyre Pressure", ok: vehicle.speed_kmph < 90, good: "Optimal", bad: "Low" },
-                                ].map(h => (
-                                    <span key={h.label} style={{
-                                        background: h.ok ? "#00ff8710" : "#ef444415",
-                                        color: h.ok ? "#00ff87" : "#ef4444",
-                                        border: `1px solid ${h.ok ? "#00ff8733" : "#ef444433"}`,
-                                        padding: "5px 14px", borderRadius: 20, fontSize: "0.72rem", fontWeight: 600,
-                                    }}>
-                                        {h.label}: {h.ok ? h.good : h.bad}
-                                    </span>
-                                ))}
-                            </div>
 
-                            {/* Fuel bar */}
-                            <div>
-                                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                                    <span style={{ color: "#8b949e", fontSize: "0.72rem" }}>Fuel Level</span>
-                                    <span style={{ color: "#f0f6fc", fontSize: "0.72rem", fontWeight: 600 }}>
-                                        {Math.round(Math.min(100, (vehicle.fuel_consumed_liters / 5) * 100))}%
-                                    </span>
-                                </div>
-                                <div style={{ height: 8, background: "#111827", borderRadius: 4, overflow: "hidden" }}>
-                                    <div style={{
-                                        height: "100%", borderRadius: 4,
-                                        width: `${Math.min(100, (vehicle.fuel_consumed_liters / 5) * 100)}%`,
-                                        background: vehicle.fuel_consumed_liters > 4 ? "#ef4444" : vehicle.fuel_consumed_liters > 2.5 ? "#f59e0b" : "#00ff87",
-                                        transition: "width 0.3s ease",
-                                    }} />
+                {/* Logistics Monitors */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+
+                    {/* Cold Chain Monitor (Conditional) */}
+                    {vehicle?.temperature_c !== undefined && (
+                        <div style={{ background: "#0d1421", border: "1px solid #1e293b", borderRadius: 14, padding: 20 }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                                <h3 style={{ color: "#f0f6fc", margin: 0, fontSize: "0.82rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", display: "flex", alignItems: "center", gap: 6 }}>
+                                    <span style={{ fontSize: "1.1rem" }}>❄️</span> Cold Chain Monitor
+                                </h3>
+                                <div style={{ color: vehicle.temperature_breach ? "#ef4444" : "#00d4ff", fontSize: "0.75rem", fontWeight: 700, background: vehicle.temperature_breach ? "#ef444415" : "#00d4ff15", padding: "4px 10px", borderRadius: 20 }}>
+                                    {vehicle.temperature_breach ? "BREACH DETECTED" : "NOMINAL"}
                                 </div>
                             </div>
 
-                            {/* Maintenance info */}
-                            <div style={{ background: "#111827", borderRadius: 10, padding: 14 }}>
-                                <div style={{ color: "#8b949e", fontSize: "0.68rem", textTransform: "uppercase", marginBottom: 8 }}>Maintenance Notes</div>
-                                <div style={{ color: "#f0f6fc", fontSize: "0.78rem" }}>Last service: Jan 15, 2026</div>
-                                <div style={{ color: "#4b5563", fontSize: "0.72rem", marginTop: 4 }}>Next scheduled: Feb 28, 2026</div>
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                                <div style={{ background: "#111827", borderRadius: 10, padding: 16, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+                                    <div style={{ color: "#8b949e", fontSize: "0.7rem", textTransform: "uppercase", marginBottom: 8 }}>Internal Temp</div>
+                                    <div style={{ color: vehicle.temperature_breach ? "#ef4444" : "#00d4ff", fontSize: "2rem", fontWeight: 700 }}>
+                                        {vehicle.temperature_c.toFixed(1)}°C
+                                    </div>
+                                    <div style={{ color: "#4b5563", fontSize: "0.7rem", marginTop: 4 }}>Target: -18°C · ±2°C</div>
+                                </div>
+
+                                <div style={{ background: "#111827", borderRadius: 10, padding: 16, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+                                    <div style={{ color: "#8b949e", fontSize: "0.7rem", textTransform: "uppercase", marginBottom: 8 }}>Humidity</div>
+                                    <div style={{ color: "#f0f6fc", fontSize: "2rem", fontWeight: 700 }}>
+                                        {vehicle.humidity_pct?.toFixed(0) || "—"}%
+                                    </div>
+                                    <div style={{ color: "#4b5563", fontSize: "0.7rem", marginTop: 4 }}>Target: 85% Max</div>
+                                </div>
                             </div>
                         </div>
-                    ) : (
-                        <div style={{ color: "#4b5563", fontSize: "0.82rem" }}>Loading health data…</div>
                     )}
+
+                    {/* Load Compliance */}
+                    <div style={{ background: "#0d1421", border: "1px solid #1e293b", borderRadius: 14, padding: 20 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                            <h3 style={{ color: "#f0f6fc", margin: 0, fontSize: "0.82rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", display: "flex", alignItems: "center", gap: 6 }}>
+                                <span style={{ fontSize: "1.1rem" }}>⚖️</span> Load Compliance
+                            </h3>
+                            {vehicle?.overload_pct && vehicle.overload_pct > 0 && (
+                                <div style={{ color: "#ef4444", fontSize: "0.75rem", fontWeight: 700, background: "#ef444415", padding: "4px 10px", borderRadius: 20 }}>
+                                    OVERLOADED
+                                </div>
+                            )}
+                        </div>
+
+                        {vehicle && vehicle.load_weight_kg && vehicle.vehicle_capacity_kg ? (
+                            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                                <div>
+                                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                                        <span style={{ color: "#8b949e", fontSize: "0.75rem" }}>Gross Weight vs Capacity</span>
+                                        <span style={{ color: "#f0f6fc", fontSize: "0.75rem", fontWeight: 600 }}>
+                                            {(vehicle.load_weight_kg / 1000).toFixed(1)}t / {(vehicle.vehicle_capacity_kg / 1000).toFixed(1)}t
+                                        </span>
+                                    </div>
+                                    <div style={{ height: 10, background: "#111827", borderRadius: 5, overflow: "hidden", border: "1px solid #1e293b" }}>
+                                        <div style={{
+                                            height: "100%", borderRadius: 5,
+                                            width: `${Math.min(100, (vehicle.load_weight_kg / vehicle.vehicle_capacity_kg) * 100)}%`,
+                                            background: vehicle.overload_pct && vehicle.overload_pct > 0 ? "#ef4444" : vehicle.load_weight_kg / vehicle.vehicle_capacity_kg > 0.9 ? "#f59e0b" : "#00ff87",
+                                            transition: "width 0.3s ease",
+                                        }} />
+                                    </div>
+                                </div>
+                                <div style={{ display: "flex", gap: 16, marginTop: 8 }}>
+                                    <div style={{ flex: 1, background: "#111827", borderRadius: 8, padding: "10px 14px" }}>
+                                        <div style={{ color: "#8b949e", fontSize: "0.68rem", textTransform: "uppercase", marginBottom: 4 }}>Cargo Condition</div>
+                                        <div style={{ color: vehicle.cargo_condition !== "INTACT" ? "#f59e0b" : "#00ff87", fontSize: "0.82rem", fontWeight: 600 }}>
+                                            {vehicle.cargo_condition?.replace(/_/g, " ") || "UNKNOWN"}
+                                        </div>
+                                    </div>
+                                    <div style={{ flex: 1, background: "#111827", borderRadius: 8, padding: "10px 14px" }}>
+                                        <div style={{ color: "#8b949e", fontSize: "0.68rem", textTransform: "uppercase", marginBottom: 4 }}>Load Stability</div>
+                                        <div style={{ color: vehicle.load_status_detail?.includes("SHIFT") ? "#ef4444" : "#00ff87", fontSize: "0.82rem", fontWeight: 600 }}>
+                                            {vehicle.load_status_detail || "SECURE"}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div style={{ color: "#4b5563", fontSize: "0.82rem" }}>Loading payload data…</div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Mini Map */}

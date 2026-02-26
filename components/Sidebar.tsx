@@ -7,6 +7,7 @@ import { useFleet } from "@/lib/FleetContext";
 
 const NAV_ITEMS = [
     { icon: "🌿", label: "Overview", href: "/overview" },
+    { icon: "📦", label: "Shipments", href: "/shipments" },
     { icon: "🚛", label: "Fleet List", href: "/fleet" },
     { icon: "📊", label: "Analytics", href: "/analytics" },
     { icon: "🚨", label: "Alert Center", href: "/alerts", badge: true },

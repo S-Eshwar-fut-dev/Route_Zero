@@ -15,29 +15,29 @@ interface Message {
 }
 
 const DEMO_QUESTIONS = [
-    "Which truck has emitted the most CO₂?",
-    "How much carbon has our fleet saved today?",
-    "Are there any active anomalies right now?",
-    "What is the most fuel-efficient route?",
+    "Are any shipments currently at risk of missing SLA?",
+    "Which route is experiencing the worst delays today?",
+    "Show me the status of the cold chain fleet.",
+    "What is our estimated fine exposure for overloads?",
     "Does our emission rate comply with NLP targets?",
 ];
 
 const FALLBACK_ANSWERS: Record<string, string> = {
-    co2: "**TRK-DL-001** on Delhi–Mumbai leads fleet emissions at ~47.3 kg CO₂/hr.\n\n**Action:** Reduce speed to 60–70 kmph, schedule injector inspection.",
-    saved: "Fleet has saved ~312 kg CO₂ vs baseline today.\n\nDelhi–Mumbai: 108 kg · Chennai–Bangalore: 124 kg · Kolkata–Patna: 80 kg.",
-    anomal: "1 active HIGH_EMISSION_ALERT on TRK-DL-001.\n\n5-min CO₂: 13.4 kg > 2× rolling avg 5.8 kg.\n\n**Action:** Contact driver immediately.",
-    efficient: "Chennai–Bangalore is most efficient at 4.3 km/L avg. TRK-CH-003 leads at 4.8 km/L.",
+    risk: "**TRK-DL-004** is carrying 40ft Heavy Freight and is delayed by 2.4hrs due to an accident ahead.\n\n**Action:** Recommend rerouting via NH-48 or notifying the consignee of ETA pushback to 18:30.",
+    delay: "The **Delhi–Mumbai** corridor has the worst delays today (Avg 1.8hrs delayed).\n\n**Driver Note:** Heavy monsoon rains reported near Jaipur. Speed reduced to 45km/h.",
+    cold: "1 active **TEMPERATURE_BREACH** on TRK-CH-003.\n\nInternal temp constraint: -18°C. Current reading: **-12.4°C**.\n\n**Action:** Maintenance dispatched to intercept at next weigh station.",
+    fine: "Current estimated exposure is **$2,450**. Primary drivers are two overloaded containers on Kolkata-Patna (+15% payload limit) and 3 SLA misses on Delhi-Mumbai.",
     comply: "Fleet is compliant with NLP 2022 interim targets but 8% above 2027 trajectory. 9.2% reduction achieved vs 20% target.",
 };
 
 function getFallback(q: string): string {
     const lq = q.toLowerCase();
-    if (lq.includes("co2") || lq.includes("emitted") || lq.includes("most")) return FALLBACK_ANSWERS.co2;
-    if (lq.includes("saved") || lq.includes("baseline")) return FALLBACK_ANSWERS.saved;
-    if (lq.includes("anomal") || lq.includes("alert")) return FALLBACK_ANSWERS.anomal;
-    if (lq.includes("efficient") || lq.includes("route") || lq.includes("fuel")) return FALLBACK_ANSWERS.efficient;
+    if (lq.includes("risk") || lq.includes("sla") || lq.includes("missing")) return FALLBACK_ANSWERS.risk;
+    if (lq.includes("delay") || lq.includes("route") || lq.includes("worst")) return FALLBACK_ANSWERS.delay;
+    if (lq.includes("cold") || lq.includes("temp") || lq.includes("status")) return FALLBACK_ANSWERS.cold;
+    if (lq.includes("fine") || lq.includes("exposure") || lq.includes("overload")) return FALLBACK_ANSWERS.fine;
     if (lq.includes("comply") || lq.includes("policy") || lq.includes("target")) return FALLBACK_ANSWERS.comply;
-    return "GreenAI is reconnecting. Ask about emissions, anomalies, savings, or NLP compliance.";
+    return "GreenAI is reconnecting. Ask about SLAs, route delays, cold chain status, or fine exposure.";
 }
 
 export default function ChatDrawer() {
@@ -148,7 +148,7 @@ export default function ChatDrawer() {
                         value={input}
                         onChange={e => setInput(e.target.value)}
                         onKeyDown={e => { if (e.key === "Enter") send(input); }}
-                        placeholder="Ask about fleet CO₂, routes, compliance…"
+                        placeholder="Ask about SLAs, delays, fleet status…"
                         style={{ flex: 1, background: "#111827", border: "1px solid #1e293b", borderRadius: 8, padding: "8px 14px", color: "#f0f6fc", fontSize: "0.85rem", outline: "none" }}
                     />
                     <button onClick={() => send(input)} disabled={loading}

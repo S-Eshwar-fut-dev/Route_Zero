@@ -7,8 +7,8 @@ import ClientShell from "@/components/ClientShell";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "GreenPulse — Live CO₂ Intelligence",
-  description: "Real-time carbon tracking platform for Indian logistics, powered by Pathway AI.",
+  title: "GreenPulse — Logistics Intelligence Platform",
+  description: "Real-time Intelligent Logistics Orchestration for Indian Freight, powered by Pathway AI.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

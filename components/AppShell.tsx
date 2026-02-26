@@ -24,7 +24,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
                     background: "#0d1421",
                 }}>
                     <span style={{ fontSize: "1.15rem", fontWeight: 800, color: "#00ff87", letterSpacing: "-0.01em" }}>🌿 GreenPulse</span>
-                    <span style={{ color: "#4b5563", fontSize: "0.78rem" }}>Carbon Intelligence Platform</span>
+                    <span style={{ color: "#4b5563", fontSize: "0.78rem" }}>Intelligent Logistics Orchestration</span>
 
                     <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 16 }}>
                         {/* Notification bell */}
